@@ -1,0 +1,5 @@
+
+    parm original/solvated.prmtop
+    trajin original/solvated.inpcrd
+    trajout generated/solvated.pdb conect
+    
