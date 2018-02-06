@@ -3,7 +3,7 @@
           Amber 16 SANDER                              2016
           -------------------------------------------------------
 
-| Run on 02/05/2018 at 16:56:08
+| Run on 02/05/2018 at 20:37:48
 
 |   Executable path: sander
 | Working directory: /home/dslochower/hgst-3tb-data/projects/smirnoff-host-guest/generated
@@ -52,7 +52,7 @@ File Assignments:
 | peek_ewald_inpcrd: Box info found
 |Largest sphere to fit in unit cell has radius =    20.088
 | New format PARM file being parsed.
-| Version =    1.000 Date = 02/05/18 Time = 15:13:40
+| Version =    1.000 Date = 02/05/18 Time = 20:36:09
  NATOM  =    6804 NTYPES =    6804 NBONH =    4495 MBONA  =      93
  NTHETH =    2381 MTHETA =     137 NPHIH =     445 MPHIA  =     360
  NHPARM =       0 NPARM  =       0 NNB   =    9804 NRES   =    2231
