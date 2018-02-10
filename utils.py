@@ -6,6 +6,7 @@ SMIRNOFF99Frosst.
 """
 
 import subprocess as sp
+import parmed as pmd
 from openeye.oechem import *
 from openforcefield.typing.engines.smirnoff import *
 from networkx.algorithms import isomorphism
@@ -185,6 +186,7 @@ def extract_water_and_ions(amber_prmtop, amber_inpcrd, host_residue, guest_resid
         print(f'Error: {error}')
 
 
+
 def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
                                      water_model='tip3p', ion_model='ionsjc_tip3p',
                                      dummy_atoms=False, path='./'):
@@ -221,7 +223,6 @@ def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
         saveamberparm mol {output_prmtop} {output_inpcrd}
         quit
             '''
-
 
     else:
         tleap = \
@@ -570,3 +571,39 @@ def parse_residue_name(input_mol2, path='./'):
         else:
             pass
     return None
+
+def split_topology(file_name):
+    """Split a file into component topology using ParmEd.
+    
+    Parameters:
+    ----------
+    file_name : str
+        Structure file
+    """
+
+    topology = pmd.load_file(file_name)
+    return topology.split()
+
+def create_host_guest_topology(components, host_resname, guest_resname):
+    """Return the topology components belonging the host and guest only.
+    
+    Parameters:
+    ----------
+    components : parmed.topology.components
+        ParmEd topology components, split by molecule
+    host_resname : str
+        Residue name of the host molecule (no colon)
+    guest_resname : str
+        Residue name of the guest molecule (no colon)
+    Returns
+    -------
+    pmd.Structure
+        A ParmEd structure containing just the host and guest molecule
+    """
+    topology = pmd.Structure()
+    for component in components:
+        # Check the first residue of each component becuase there may be multiple residues in each component, but they shoudl all have the same residue name.hash
+        if component[0].residues[0].name == host_resname.upper() or \
+            component[0].residues[0].name == guest_resname.upper():
+            topology += component[0]
+    return topology
