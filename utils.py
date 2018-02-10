@@ -208,6 +208,7 @@ def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
     """
 
     if dummy_atoms:
+        write_dummy_atom_frcmod(file_name='frcmod.dum', path=path)
         tleap = \
             f'''
         source leaprc.protein.ff14sb
@@ -215,11 +216,12 @@ def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
         source leaprc.gaff
         loadamberparams frcmod.{water_model}
         loadamberparams frcmod.{ion_model}
-        loadamberparams dum.frcmod
+        loadamberparams frcmod.dum
         mol = loadpdb {input_pdb}
         saveamberparm mol {output_prmtop} {output_inpcrd}
         quit
             '''
+
 
     else:
         tleap = \
@@ -251,6 +253,7 @@ def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
         p = sp.Popen(['cat', tleap_output], cwd=path, stdout=sp.PIPE)
         for line in p.stdout:
             print(line.decode("utf-8").strip(), )
+        # Because `leap.log` is hardcoded, only some output ends up in the desired output file.
         p = sp.Popen(['cat', 'leap.log'], cwd=path, stdout=sp.PIPE)
         for line in p.stdout:
             print(line.decode("utf-8").strip(), )
@@ -258,7 +261,59 @@ def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
         print(f'Output: {output}')
         print(f'Error: {error}')
 
+def write_dummy_atom_frcmod(file_name, path='./'):
+    """
+    Create a `frcmod` file to handle dummy atoms in structures.
+    
+    Parameters:
+    ----------
+    file_name : str
+        Name of `frcmod` file to be written
+    path : str
+        Directory of `frcmod` file to be written
+    """
+
+    frcmod = \
+        '''
+    Parameters for a "Lead-like" Dummy Atom
+    MASS
+    Pb     210.00
+
+    BOND
+
+    ANGLE
+
+    DIHE
+
+    IMPROPER
+
+    NONBON
+    Pb       0.000     0.0000000
+
+        '''
+    with open(path + file_name, 'w') as file:
+        file.write(frcmod)
+
 def process_smiles(string, name=None, add_hydrogens=True, add_tripos=True):
+    """Wrapper for a few options to convert a SMILES string to an OEMol.
+    
+    Parameters:
+    ----------
+    string : str
+        SMILES string
+    name :str, optional
+       Residue name of the molecule
+    add_hydrogens : bool
+        Whether to add explicit hydrogens or not
+    add_tripos : bool
+        Whether to assign Tripos atom names, and thus make all atoms names unique
+    
+    Returns
+    -------
+    openeye.oechem.OEMol
+        The molecule
+    """
+
     mol = OEMol()
     OESmilesToMol(mol, string)
     if add_hydrogens:
@@ -271,6 +326,21 @@ def process_smiles(string, name=None, add_hydrogens=True, add_tripos=True):
 
 
 def atom_mapping(reference, target):
+    """
+    Maps between a reference molecule and target molecule using maximum common substructure. For more information, see the example here: https://github.com/openforcefield/openforcefield/blob/6229a51ad77fd5cf20299e53bc9784811cb9443a/openforcefield/typing/engines/smirnoff/forcefield.py#L350
+    
+    Parameters:
+    ----------
+    reference : openeye.oechem.OEMol
+        Reference molecule for mapping
+    target : openeye.oechem.OEMol
+        Target molecule for mapping
+    Returns
+    -------
+    dictionary
+        The mapping between atom numbers in each molecule
+    """
+
     reference_topology = create_topology(reference)
     target_topology = create_topology(target)
 
@@ -304,6 +374,22 @@ def create_graph(topology):
 
 
 def remap_charges(reference_to_target_mapping, reference_mol, target_mol):
+    """Copies charges from a reference molecule to a target molecule.
+    
+    Parameters:
+    ----------
+    reference_to_target_mapping : dict
+        The dictionary containing the mapping between atoms in the reference and target molecules
+    reference_mol : openeye.oechem.OEMol
+        Reference molecule
+    target_mol : openeye.oechem.OEMol
+        Target molecule
+    Returns
+    -------
+    openey.oechem.OEMol
+        The target molecule with charges from the reference molecule
+    """
+
     print('Remapping charges...')
     print('Existing → New')
     assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
@@ -322,6 +408,22 @@ def remap_charges(reference_to_target_mapping, reference_mol, target_mol):
 
 
 def remap_names(reference_to_target_mapping, reference_mol, target_mol):
+    """Copies atom names from the reference molecule to the target molecule.
+    
+    Parameters:
+    ----------
+    reference_to_target_mapping : dict
+        The dictionary containing the mapping between atoms in the reference and target molecules
+    reference_mol : openeye.oechem.OEMol
+        Reference molecule
+    target_mol : openeye.oechem.OEMol
+        Target molecule
+    Returns
+    -------
+    openey.oechem.OEMol
+        The target molecule with atom names from the reference molecule
+    """
+
     print('Remapping atom names...')
     print('Reference → Target')
     assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
@@ -336,52 +438,22 @@ def remap_names(reference_to_target_mapping, reference_mol, target_mol):
     return target_mol
 
 
-def parse_residue_name(input_mol2, path='./'):
-    p = sp.Popen(['awk', '{print $8}', input_mol2], cwd=path, stdout=sp.PIPE)
-    for line in p.stdout:
-        if line.decode("utf-8").split() != []:
-            name = line.decode("utf-8").split()[0]
-            print(f'Found residue name = {name}')
-            return name
-        else:
-            pass
-    return None
-
-
-def remap_residues(reference_to_target_mapping, reference_mol, target_mol, resname=None):
-    print('Remapping residue names and numbers...')
-    print('Existing → New')
-    assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
-    # It's not clear to me that we have to loop over all the atoms in the molecule,
-    # if OpenEye knows they are connected properly, then setting the residue name
-    # and residue number for one atom should be enough, but keeping this loop
-    # seems safe and won't be a bottleneck.
-    for (reference_atom, target_atom) in reference_to_target_mapping.items():
-        reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
-        reference_residue = OEAtomGetResidue(reference)
-        reference_resname = reference_residue.GetName()
-        reference_resnum = reference_residue.GetResidueNumber()
-        # I believe this gets set to 'UNL' if OpenEye can't recognize the residue name.
-        # Thus, I'm adding an override to manually set the residue name, and simply.
-
-        target = target_mol.GetAtom(OEHasAtomIdx(target_atom))
-        target_name = target.GetName()
-        target_residue = OEAtomGetResidue(target)
-        target_resname = target_residue.GetName()
-        target_resnum = target_residue.GetResidueNumber()
-
-        if resname is not None:
-            target_residue.SetName(resname)
-        else:
-            target_residue.SetName(reference_resname)
-        target_residue.SetResidueNumber(reference_resnum)
-
-        print(f'({target_name:4}) {target_resname:4} {target_resnum:4} → '
-              f'{target_residue.GetName():4} {target_residue.GetResidueNumber():4}')
-    return target_mol
-
-
 def remap_type(reference_to_target_mapping, reference_mol, target_mol):
+    """Copies atom types from the reference molecule to the target molecule.
+    
+    Parameters:
+    ----------
+    reference_to_target_mapping : dict
+        The dictionary containing the mapping between atoms in the reference and target molecules
+    reference_mol : openeye.oechem.OEMol
+        Reference molecule
+    target_mol : openeye.oechem.OEMol
+        Target molecule
+    Returns
+    -------
+    openey.oechem.OEMol
+        The target molecule with atom types from the reference molecule
+    """
     print('Remapping atom types...')
     print('Existing → New')
     assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
@@ -400,6 +472,21 @@ def remap_type(reference_to_target_mapping, reference_mol, target_mol):
 
 
 def remap_coordinates(reference_to_target_mapping, reference_mol, target_mol):
+    """Copies atom coordinates from the reference molecule to the target molecule.
+    
+    Parameters:
+    ----------
+    reference_to_target_mapping : dict
+        The dictionary containing the mapping between atoms in the reference and target molecules
+    reference_mol : openeye.oechem.OEMol
+        Reference molecule
+    target_mol : openeye.oechem.OEMol
+        Target molecule
+    Returns
+    -------
+    openey.oechem.OEMol
+        The target molecule with atom coordinates from the reference molecule
+    """
     print('Remapping coordinates...')
     print('Existing → New')
     assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
@@ -411,3 +498,75 @@ def remap_coordinates(reference_to_target_mapping, reference_mol, target_mol):
         print(f'{current_coordinates} → {mapped_coordinates[target_atom]}')
     target_mol.SetCoords(mapped_coordinates.flatten())
     return target_mol
+
+def remap_residues(reference_to_target_mapping, reference_mol, target_mol, resname=None):
+    """Copies residue name and number from the reference molecule to the target molecule.
+    
+    Parameters:
+    ----------
+    reference_to_target_mapping : dict
+        The dictionary containing the mapping between atoms in the reference and target molecules
+    reference_mol : openeye.oechem.OEMol
+        Reference molecule
+    target_mol : openeye.oechem.OEMol
+        Target molecule
+    resname : str
+        Override setting the target residue name
+    Returns
+    -------
+    openey.oechem.OEMol
+        The target molecule with residue name and number from the reference molecule
+    """
+    print('Remapping residue names and numbers...')
+    print('Existing → New')
+    assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
+    # It's not clear to me that we have to loop over all the atoms in the molecule,
+    # if OpenEye knows they are connected properly, then setting the residue name
+    # and residue number for one atom should be enough, but keeping this loop
+    # seems safe and won't be a bottleneck.
+    for (reference_atom, target_atom) in reference_to_target_mapping.items():
+        reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
+        reference_residue = OEAtomGetResidue(reference)
+        reference_resname = reference_residue.GetName()
+        reference_resnum = reference_residue.GetResidueNumber()
+        # I believe this gets set to 'UNL' if OpenEye can't recognize the residue name.
+        # Thus, I'm adding an override to manually set the residue name.
+
+        target = target_mol.GetAtom(OEHasAtomIdx(target_atom))
+        target_name = target.GetName()
+        target_residue = OEAtomGetResidue(target)
+        target_resname = target_residue.GetName()
+        target_resnum = target_residue.GetResidueNumber()
+
+        if resname is not None:
+            target_residue.SetName(resname)
+        else:
+            target_residue.SetName(reference_resname)
+        target_residue.SetResidueNumber(reference_resnum)
+
+        print(f'({target_name:4}) {target_resname:4} {target_resnum:4} → '
+              f'{target_residue.GetName():4} {target_residue.GetResidueNumber():4}')
+    return target_mol
+
+def parse_residue_name(input_mol2, path='./'):
+    """Extract the residue name from a `mol2` file.
+    
+    Parameters:
+    ----------
+    input_mol2 : str
+        File name of the `mol2`
+    Returns
+    -------
+    str or None
+        Residue name, if found
+    """
+
+    p = sp.Popen(['awk', '{print $8}', input_mol2], cwd=path, stdout=sp.PIPE)
+    for line in p.stdout:
+        if line.decode("utf-8").split() != []:
+            name = line.decode("utf-8").split()[0]
+            print(f'Found residue name = {name}')
+            return name
+        else:
+            pass
+    return None
