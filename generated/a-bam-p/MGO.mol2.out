@@ -1,0 +1,58 @@
+
+CPPTRAJ: Trajectory Analysis. V17.00
+    ___  ___  ___  ___
+     | \/ | \/ | \/ | 
+    _|_/\_|_/\_|_/\_|_
+
+| Date/time: 02/12/18 12:19:53
+| Available memory: 12.482 GB
+
+INPUT: Reading input from 'generated/a-bam-p/MGO.mol2.in'
+  [parm original/a-bam-p/full.topo]
+	Reading 'original/a-bam-p/full.topo' as Amber Topology
+	Radius Set: modified Bondi radii (mbondi)
+  [trajin generated/a-bam-p/full.pdb]
+	Reading 'generated/a-bam-p/full.pdb' as PDB
+	Read CRYST1 info from PDB: a=38.861 b=39.115 c=56.412 alpha=90 beta=90 gamma=90
+  [mask ":MGO" maskmol2 generated/a-bam-p/MGO.mol2]
+	Writing 'generated/a-bam-p/MGO.mol2' as Mol2
+    ACTIONMASK: Information on atoms in mask :MGO will be printed.
+	Mol2s of atoms in mask will be written to generated/a-bam-p/MGO.mol2.X
+---------- RUN BEGIN -------------------------------------------------
+
+PARAMETER FILES (1 total):
+ 0: full.topo, 6159 atoms, 2023 res, box: Orthogonal, 2018 mol, 2000 solvent
+
+INPUT TRAJECTORIES (1 total):
+ 0: 'full.pdb' is a PDB file, Parm full.topo (Orthogonal box) (reading 1 of 1)
+  Coordinate processing will occur on 1 frames.
+
+BEGIN TRAJECTORY PROCESSING:
+.....................................................
+ACTION SETUP FOR PARM 'full.topo' (1 actions):
+  0: [mask ":MGO" maskmol2 generated/a-bam-p/MGO.mol2]
+----- full.pdb (1-1, 1) -----
+	Read CRYST1 info from PDB: a=38.861 b=39.115 c=56.412 alpha=90 beta=90 gamma=90
+100% Complete.
+
+Read 1 frames and processed 1 frames.
+TIME: Avg. throughput= 247.2799 frames / second.
+
+ACTION OUTPUT:
+
+RUN TIMING:
+TIME:		Init               : 0.0000 s (  0.27%)
+TIME:		Trajectory Process : 0.0040 s ( 99.36%)
+TIME:		Action Post        : 0.0000 s (  0.00%)
+TIME:		Analysis           : 0.0000 s (  0.00%)
+TIME:		Data File Write    : 0.0000 s (  0.02%)
+TIME:		Other              : 0.0000 s (  0.00%)
+TIME:	Run Total 0.0041 s
+---------- RUN END ---------------------------------------------------
+TIME: Total execution time: 0.0159 seconds.
+--------------------------------------------------------------------------------
+To cite CPPTRAJ use:
+Daniel R. Roe and Thomas E. Cheatham, III, "PTRAJ and CPPTRAJ: Software for
+  Processing and Analysis of Molecular Dynamics Trajectory Data". J. Chem.
+  Theory Comput., 2013, 9 (7), pp 3084-3095.
+

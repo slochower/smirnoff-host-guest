@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Provides helper functions for converting AMBER files from an existing force field to
 SMIRNOFF99Frosst.
@@ -58,6 +57,7 @@ def check_unique_atom_names(molecule):
     print(f'{atoms} atoms in structure, {len(atom_names)} unique atom names.')
     assert atoms == len(atom_names)
 
+
 def create_pdb_with_conect(solvated_pdb, amber_prmtop, output_pdb, path='./'):
     """
     Create a PDB file containing CONECT records.
@@ -86,8 +86,11 @@ def create_pdb_with_conect(solvated_pdb, amber_prmtop, output_pdb, path='./'):
     with open(path + cpptraj_input, 'w') as file:
         file.write(cpptraj)
     with open(path + cpptraj_output, 'w') as file:
-        p = sp.Popen(['cpptraj', '-i', cpptraj_input], cwd=path,
-                     stdout=file, stderr=file)
+        p = sp.Popen(
+            ['cpptraj', '-i', cpptraj_input],
+            cwd=path,
+            stdout=file,
+            stderr=file)
         output, error = p.communicate()
     if p.returncode == 0:
         print('PDB file written by cpptraj.')
@@ -121,21 +124,30 @@ def prune_conect(input_pdb, output_pdb, path='./'):
         first_water_residue = int(float(line.decode("utf-8").split()[1]))
         print(f'First water residue = {first_water_residue}')
 
-    p = sp.Popen(['egrep', '-n', f'CONECT [ ]* {first_water_residue}', input_pdb],
-                 cwd=path, stdout=sp.PIPE)
+    p = sp.Popen(
+        ['egrep', '-n', f'CONECT [ ]* {first_water_residue}', input_pdb],
+        cwd=path,
+        stdout=sp.PIPE)
     for line in p.stdout:
         line_to_delete_from = int(float(line.decode("utf-8").split(':')[0]))
-        print(f'Found first water CONECT entry at line = {line_to_delete_from}')
+        print(
+            f'Found first water CONECT entry at line = {line_to_delete_from}')
 
     with open(path + output_pdb, 'w') as file:
         sp.Popen(
-            ['awk', f'NR < {line_to_delete_from}', input_pdb], cwd=path, stdout=file)
+            ['awk', f'NR < {line_to_delete_from}', input_pdb],
+            cwd=path,
+            stdout=file)
 
         sp.Popen(['echo', 'END'], cwd=path, stdout=file)
 
 
-def extract_water_and_ions(amber_prmtop, amber_inpcrd, host_residue, guest_residue,
-                           output_pdb, path='./'):
+def extract_water_and_ions(amber_prmtop,
+                           amber_inpcrd,
+                           host_residue,
+                           guest_residue,
+                           output_pdb,
+                           path='./'):
     """
     Create a PDB file containing just the water and ions.
     `cpptraj` must be in your PATH.
@@ -163,14 +175,18 @@ def extract_water_and_ions(amber_prmtop, amber_inpcrd, host_residue, guest_resid
     strip {guest_residue}
     trajout {output_pdb}
         '''
+
     cpptraj_input = output_pdb + '.in'
     cpptraj_output = output_pdb + '.out'
 
     with open(path + cpptraj_input, 'w') as file:
         file.write(cpptraj)
     with open(path + cpptraj_output, 'w') as file:
-        p = sp.Popen(['cpptraj', '-i', cpptraj_input], cwd=path,
-                     stdout=file, stderr=file)
+        p = sp.Popen(
+            ['cpptraj', '-i', cpptraj_input],
+            cwd=path,
+            stdout=file,
+            stderr=file)
         output, error = p.communicate()
     if p.returncode == 0:
         print('Water and ion PDB file written by cpptraj.')
@@ -186,10 +202,13 @@ def extract_water_and_ions(amber_prmtop, amber_inpcrd, host_residue, guest_resid
         print(f'Error: {error}')
 
 
-
-def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
-                                     water_model='tip3p', ion_model='ionsjc_tip3p',
-                                     dummy_atoms=False, path='./'):
+def create_water_and_ions_parameters(input_pdb,
+                                     output_prmtop,
+                                     output_inpcrd,
+                                     water_model='tip3p',
+                                     ion_model='ionsjc_tip3p',
+                                     dummy_atoms=False,
+                                     path='./'):
     """
     Create AMBER coordinates and parameters for just the water and ions.
     `tleap` must be in your PATH.
@@ -236,14 +255,18 @@ def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
         saveamberparm mol {output_prmtop} {output_inpcrd}
         quit
             '''
+
     tleap_input = output_prmtop + '.in'
     tleap_output = output_prmtop + '.out'
 
     with open(path + tleap_input, 'w') as file:
         file.write(tleap)
     with open(path + tleap_output, 'w') as file:
-        p = sp.Popen(['tleap', '-f', tleap_input, '>', tleap_output], cwd=path,
-                     stdout=file, stderr=file)
+        p = sp.Popen(
+            ['tleap', '-f', tleap_input, '>', tleap_output],
+            cwd=path,
+            stdout=file,
+            stderr=file)
         output, error = p.communicate()
     if p.returncode == 0:
         print('Water and ion parameters and coordinates written by tleap.')
@@ -261,6 +284,7 @@ def create_water_and_ions_parameters(input_pdb, output_prmtop, output_inpcrd,
     else:
         print(f'Output: {output}')
         print(f'Error: {error}')
+
 
 def write_dummy_atom_frcmod(file_name, path='./'):
     """
@@ -294,6 +318,7 @@ def write_dummy_atom_frcmod(file_name, path='./'):
         '''
     with open(path + file_name, 'w') as file:
         file.write(frcmod)
+
 
 def process_smiles(string, name=None, add_hydrogens=True, add_tripos=True):
     """Wrapper for a few options to convert a SMILES string to an OEMol.
@@ -355,12 +380,15 @@ def atom_mapping(reference, target):
         print('Reference → Target')
         for (reference_atom, target_atom) in graph_matcher.mapping.items():
             reference_to_target_mapping[reference_atom] = target_atom
-            reference_name = reference.GetAtom(OEHasAtomIdx(reference_atom)).GetName()
-            reference_type = reference.GetAtom(OEHasAtomIdx(reference_atom)).GetType()
+            reference_name = reference.GetAtom(
+                OEHasAtomIdx(reference_atom)).GetName()
+            reference_type = reference.GetAtom(
+                OEHasAtomIdx(reference_atom)).GetType()
             target_name = target.GetAtom(OEHasAtomIdx(target_atom)).GetName()
 
-            print(f'({reference_name:4} {reference_type:5}) {reference_atom:3d} → '
-                  f'{target_atom:3d} ({target_name:4})')
+            print(
+                f'({reference_name:4} {reference_type:5}) {reference_atom:3d} → '
+                f'{target_atom:3d} ({target_name:4})')
     else:
         print('Graph is not isomorphic.')
     return reference_to_target_mapping
@@ -404,7 +432,9 @@ def remap_charges(reference_to_target_mapping, reference_mol, target_mol):
         target_name = target.GetName()
 
         target.SetPartialCharge(reference_chg)
-        print(f'({target_name:4}) {target_chg:+04f} → {target.GetPartialCharge():+04f}')
+        print(
+            f'({target_name:4}) {target_chg:+04f} → {target.GetPartialCharge():+04f}'
+        )
     return target_mol
 
 
@@ -500,7 +530,11 @@ def remap_coordinates(reference_to_target_mapping, reference_mol, target_mol):
     target_mol.SetCoords(mapped_coordinates.flatten())
     return target_mol
 
-def remap_residues(reference_to_target_mapping, reference_mol, target_mol, resname=None):
+
+def remap_residues(reference_to_target_mapping,
+                   reference_mol,
+                   target_mol,
+                   resname=None):
     """Copies residue name and number from the reference molecule to the target molecule.
     
     Parameters:
@@ -545,9 +579,12 @@ def remap_residues(reference_to_target_mapping, reference_mol, target_mol, resna
             target_residue.SetName(reference_resname)
         target_residue.SetResidueNumber(reference_resnum)
 
-        print(f'({target_name:4}) {target_resname:4} {target_resnum:4} → '
-              f'{target_residue.GetName():4} {target_residue.GetResidueNumber():4}')
+        print(
+            f'({target_name:4}) {target_resname:4} {target_resnum:4} → '
+            f'{target_residue.GetName():4} {target_residue.GetResidueNumber():4}'
+        )
     return target_mol
+
 
 def parse_residue_name(input_mol2, path='./'):
     """Extract the residue name from a `mol2` file.
@@ -572,6 +609,7 @@ def parse_residue_name(input_mol2, path='./'):
             pass
     return None
 
+
 def split_topology(file_name):
     """Split a file into component topology using ParmEd.
     
@@ -583,6 +621,7 @@ def split_topology(file_name):
 
     topology = pmd.load_file(file_name)
     return topology.split()
+
 
 def create_host_guest_topology(components, host_resname, guest_resname):
     """Return the topology components belonging the host and guest only.
@@ -607,3 +646,56 @@ def create_host_guest_topology(components, host_resname, guest_resname):
             component[0].residues[0].name == guest_resname.upper():
             topology += component[0]
     return topology
+
+
+def create_host_mol2(solvated_pdb, amber_prmtop, mask, output_mol2, path='./'):
+    """
+    Create a `mol2` file for the host (useful if the host is composed of multiple residues).
+    `cpptraj` must be in your PATH.
+    Parameters
+    ----------
+    solvated_pdb : str
+        Existing solvated structure from e.g., Mobley's Benchmark Sets repository
+    amber_prmtop : str
+        AMBER (or other) parameters for the residues in the solvated PDB file
+    mask : str
+        AMBER mask to select the host (without colon)
+    output_mol2 : str
+        Output `mol2` file name
+    path : str
+        Directory for input and output files
+    """
+    cpptraj = \
+        f'''
+    parm {amber_prmtop}
+    trajin {solvated_pdb}
+    mask ":{mask}" maskmol2 {output_mol2}
+    '''
+
+    cpptraj_input = output_mol2 + '.in'
+    cpptraj_output = output_mol2 + '.out'
+
+    with open(path + cpptraj_input, 'w') as file:
+        file.write(cpptraj)
+    with open(path + cpptraj_output, 'w') as file:
+        p = sp.Popen(
+            ['cpptraj', '-i', cpptraj_input],
+            cwd=path,
+            stdout=file,
+            stderr=file)
+        output, error = p.communicate()
+    if p.returncode == 0:
+        print('MOL2 file written by cpptraj.')
+    elif p.returncode == 1:
+        print('Error returned by cpptraj.')
+        print(f'Output: {output}')
+        print(f'Error: {error}')
+        p = sp.Popen(['cat', cpptraj_output], cwd=path, stdout=sp.PIPE)
+        for line in p.stdout:
+            print(line.decode("utf-8").strip(), )
+    else:
+        print(f'Output: {output}')
+        print(f'Error: {error}')
+    # Since `cpptraj` writes the frame number as suffix, move back to desired file name.
+    p = sp.Popen(
+        ['mv', output_mol2 + '.1', output_mol2], cwd=path, stdout=sp.PIPE)
