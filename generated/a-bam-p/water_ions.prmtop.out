@@ -1,0 +1,67 @@
+-I: Adding /home/dslochower/data/applications/amber16gnu/dat/leap/prep to search path.
+-I: Adding /home/dslochower/data/applications/amber16gnu/dat/leap/lib to search path.
+-I: Adding /home/dslochower/data/applications/amber16gnu/dat/leap/parm to search path.
+-I: Adding /home/dslochower/data/applications/amber16gnu/dat/leap/cmd to search path.
+-f: Source water_ions.prmtop.in.
+
+Welcome to LEaP!
+(no leaprc in search path)
+Sourcing: ./water_ions.prmtop.in
+Could not open file leaprc.protein.ff14sb: not found
+----- Source: /home/dslochower/data/applications/amber16gnu/dat/leap/cmd/leaprc.water.tip3p
+----- Source of /home/dslochower/data/applications/amber16gnu/dat/leap/cmd/leaprc.water.tip3p done
+Loading library: /home/dslochower/data/applications/amber16gnu/dat/leap/lib/atomic_ions.lib
+Loading library: /home/dslochower/data/applications/amber16gnu/dat/leap/lib/solvents.lib
+Loading parameters: /home/dslochower/data/applications/amber16gnu/dat/leap/parm/frcmod.tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+This is the additional/replacement parameter set for SPC/E water
+Loading parameters: /home/dslochower/data/applications/amber16gnu/dat/leap/parm/frcmod.ionsjc_tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+Monovalent ion parameters for Ewald and TIP3P water from Joung & Cheatham JPCB (2008)
+Loading parameters: /home/dslochower/data/applications/amber16gnu/dat/leap/parm/frcmod.ions234lm_126_tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+Li/Merz ion parameters of divalent to tetravalent ions for TIP3P water model (12-6 normal usage set)
+----- Source: /home/dslochower/data/applications/amber16gnu/dat/leap/cmd/leaprc.gaff
+----- Source of /home/dslochower/data/applications/amber16gnu/dat/leap/cmd/leaprc.gaff done
+Log file: ./leap.log
+Loading parameters: /home/dslochower/data/applications/amber16gnu/dat/leap/parm/gaff.dat
+Reading title:
+AMBER General Force Field for organic molecules (Version 1.8, Mar 2015)
+Loading parameters: /home/dslochower/data/applications/amber16gnu/dat/leap/parm/frcmod.tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+This is the additional/replacement parameter set for SPC/E water
+Loading parameters: /home/dslochower/data/applications/amber16gnu/dat/leap/parm/frcmod.ionsjc_tip3p
+Reading force field modification type file (frcmod)
+Reading title:
+Monovalent ion parameters for Ewald and TIP3P water from Joung & Cheatham JPCB (2008)
+Loading PDB file: ./water_ions.pdb
+  total atoms in file: 6013
+Checking Unit.
+WARNING: The unperturbed charge of the unit: -1.000000 is not zero.
+
+ -- ignoring the warning.
+
+Building topology.
+Building atom parameters.
+Building bond parameters.
+Building angle parameters.
+Building proper torsion parameters.
+Building improper torsion parameters.
+ total 0 improper torsions applied
+Building H-Bond parameters.
+Incorporating Non-Bonded adjustments.
+Not Marking per-residue atom chain types.
+Marking per-residue atom chain types.
+  (Residues lacking connect0/connect1 - 
+   these don't have chain types marked:
+
+	res	total affected
+
+	WAT	2000
+  )
+ (no restraints)
+	Quit

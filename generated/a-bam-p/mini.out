@@ -1,0 +1,63 @@
+
+          -------------------------------------------------------
+          Amber 16 PMEMD                              2016
+          -------------------------------------------------------
+
+| PMEMD implementation of SANDER, Release 16
+
+| Run on 02/13/2018 at 16:10:58
+
+|   Executable path: pmemd
+| Working directory: /home/dslochower/hgst-3tb-data/projects/smirnoff-host-guest/generated/a-bam-p
+|          Hostname: warthog
+
+  [-O]verwriting output
+
+File Assignments:
+|   MDIN: mini.in                                                               
+|  MDOUT: mini.out                                                              
+| INPCRD: solvated_smirnoff.inpcrd                                              
+|   PARM: solvated_smirnoff.prmtop                                              
+| RESTRT: mini.rst                                                              
+|   REFC: solvated_smirnoff.inpcrd                                              
+|  MDVEL: mdvel                                                                 
+|   MDEN: mden                                                                  
+|  MDCRD: mdcrd                                                                 
+| MDINFO: /dev/null                                                             
+|  MDFRC: mdfrc                                                                 
+
+
+ Here is the input file:
+
+*******************************************************                        
+*****************************       mini.in                                    
+*******************************************************                        
+Minimizing.                                                                    
+ &cntrl                                                                        
+  imin = 1,                                                                    
+  ntx = 1,                                                                     
+  ntxo = 1,                                                                    
+  ntpr = 50,                                                                   
+  maxcyc = 50000,                                                              
+  ncyc = 5000,                                                                 
+  irest = 0,                                                                   
+  ntf = 1,                                                                     
+  ntc = 1,                                                                     
+  ntb = 1,                                                                     
+  cut = 9.0,                                                                   
+  ntr = 1,                                                                     
+  restraint_wt = 50.0,                                                         
+  restraintmask = ':1-3 | :10@C4 | :10@N1',                                    
+  nmropt = 1,                                                                  
+  pencut = -1,                                                                 
+ /                                                                             
+ &wt type = 'END', /                                                           
+DISANG=disang.rest                                                             
+LISTOUT=POUT                                                                   
+                                                                               
+
+
+Note: ig = -1. Setting random seed to     6927 based on wallclock time in 
+      microseconds.
+ 
+| ERROR:   Box parameters not found in inpcrd file!

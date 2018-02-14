@@ -142,11 +142,51 @@ def prune_conect(input_pdb, output_pdb, path='./'):
         sp.Popen(['echo', 'END'], cwd=path, stdout=file)
 
 
+def extract_dummy_atoms(amber_prmtop,
+                        amber_inpcrd,
+                        dummy_residue,
+                        output_pdb,
+                        path='./'):
+    cpptraj = \
+        f'''
+    parm {amber_prmtop}
+    trajin {amber_inpcrd}
+    strip !{dummy_residue}
+    trajout {output_pdb}
+        '''
+
+    cpptraj_input = output_pdb + '.in'
+    cpptraj_output = output_pdb + '.out'
+
+    with open(path + cpptraj_input, 'w') as file:
+        file.write(cpptraj)
+    with open(path + cpptraj_output, 'w') as file:
+        p = sp.Popen(
+            ['cpptraj', '-i', cpptraj_input],
+            cwd=path,
+            stdout=file,
+            stderr=file)
+        output, error = p.communicate()
+    if p.returncode == 0:
+        print('Dummy atom PDB file written by cpptraj.')
+    elif p.returncode == 1:
+        print('Error returned by cpptraj.')
+        print(f'Output: {output}')
+        print(f'Error: {error}')
+        p = sp.Popen(['cat', cpptraj_output], cwd=path, stdout=sp.PIPE)
+        for line in p.stdout:
+            print(line.decode("utf-8").strip(), )
+    else:
+        print(f'Output: {output}')
+        print(f'Error: {error}')
+
+
 def extract_water_and_ions(amber_prmtop,
                            amber_inpcrd,
                            host_residue,
                            guest_residue,
                            output_pdb,
+                           dummy=None,
                            path='./'):
     """
     Create a PDB file containing just the water and ions.
@@ -167,14 +207,26 @@ def extract_water_and_ions(amber_prmtop,
         Directory for input and output files
     """
 
-    cpptraj = \
-        f'''
-    parm {amber_prmtop}
-    trajin {amber_inpcrd}
-    strip {host_residue}
-    strip {guest_residue}
-    trajout {output_pdb}
-        '''
+    if dummy is None:
+        cpptraj = \
+            f'''
+parm {amber_prmtop}
+trajin {amber_inpcrd}
+strip {host_residue}
+strip {guest_residue}
+trajout {output_pdb}
+            '''
+
+    else:
+        cpptraj = \
+            f'''
+parm {amber_prmtop}
+trajin {amber_inpcrd}
+strip {host_residue}
+strip {guest_residue}
+strip {dummy}
+trajout {output_pdb}
+            '''
 
     cpptraj_input = output_pdb + '.in'
     cpptraj_output = output_pdb + '.out'
@@ -195,6 +247,53 @@ def extract_water_and_ions(amber_prmtop,
         print(f'Output: {output}')
         print(f'Error: {error}')
         p = sp.Popen(['cat', cpptraj_output], cwd=path, stdout=sp.PIPE)
+        for line in p.stdout:
+            print(line.decode("utf-8").strip(), )
+    else:
+        print(f'Output: {output}')
+        print(f'Error: {error}')
+
+
+def create_dummy_atom_parameters(input_pdb,
+                                 output_prmtop,
+                                 output_inpcrd,
+                                 path='./'):
+    write_dummy_atom_frcmod(file_name='frcmod.dum', path=path)
+    write_dummy_atom_mol2(file_name='dum.mol2', path=path)
+    tleap = \
+        f'''
+    source leaprc.protein.ff14sb
+    source leaprc.gaff
+    loadamberparams frcmod.dum
+    DUM = loadmol2 dum.mol2
+    mol = loadpdb {input_pdb}
+    saveamberparm mol {output_prmtop} {output_inpcrd}
+    quit
+        '''
+
+    tleap_input = output_prmtop + '.in'
+    tleap_output = output_prmtop + '.out'
+
+    with open(path + tleap_input, 'w') as file:
+        file.write(tleap)
+    with open(path + tleap_output, 'w') as file:
+        p = sp.Popen(
+            ['tleap', '-f', tleap_input, '>', tleap_output],
+            cwd=path,
+            stdout=file,
+            stderr=file)
+        output, error = p.communicate()
+    if p.returncode == 0:
+        print('Dummy atom  parameters and coordinates written by tleap.')
+    elif p.returncode == 1:
+        print('Error returned by tleap.')
+        print(f'Output: {output}')
+        print(f'Error: {error}')
+        p = sp.Popen(['cat', tleap_output], cwd=path, stdout=sp.PIPE)
+        for line in p.stdout:
+            print(line.decode("utf-8").strip(), )
+        # Because `leap.log` is hardcoded, only some output ends up in the desired output file.
+        p = sp.Popen(['cat', 'leap.log'], cwd=path, stdout=sp.PIPE)
         for line in p.stdout:
             print(line.decode("utf-8").strip(), )
     else:
@@ -230,6 +329,7 @@ def create_water_and_ions_parameters(input_pdb,
 
     if dummy_atoms:
         write_dummy_atom_frcmod(file_name='frcmod.dum', path=path)
+        write_dummy_atom_mol2(file_name='dum.mol2', path=path)
         tleap = \
             f'''
         source leaprc.protein.ff14sb
@@ -238,6 +338,7 @@ def create_water_and_ions_parameters(input_pdb,
         loadamberparams frcmod.{water_model}
         loadamberparams frcmod.{ion_model}
         loadamberparams frcmod.dum
+        DUM = loadmol2 dum.mol2
         mol = loadpdb {input_pdb}
         saveamberparm mol {output_prmtop} {output_inpcrd}
         quit
@@ -299,25 +400,54 @@ def write_dummy_atom_frcmod(file_name, path='./'):
     """
 
     frcmod = \
-        '''
-    Parameters for a "Lead-like" Dummy Atom
-    MASS
-    Pb     210.00
+        '''Parameters for a "Lead-like" Dummy Atom
+MASS
+Pb     210.00
 
-    BOND
+BOND
 
-    ANGLE
+ANGLE
 
-    DIHE
+DIHE
 
-    IMPROPER
+IMPROPER
 
-    NONBON
-    Pb       0.000     0.0000000
+NONBON
+Pb       0.000     0.0000000
 
         '''
     with open(path + file_name, 'w') as file:
         file.write(frcmod)
+    print('Writing dummy atom `frcmod`.')
+
+
+def write_dummy_atom_mol2(file_name, path='./'):
+    """
+    Create a `mol2` file to handle dummy atoms in structures.
+    
+    Parameters:
+    ----------
+    file_name : str
+        Name of `mol2` file to be written
+    path : str
+        Directory of `mol2` file to be written
+    """
+
+    mol2 = \
+        '''@<TRIPOS>MOLECULE
+DUM
+    1     0     1     0     1
+SMALL
+USER_CHARGES
+@<TRIPOS>ATOM
+  1 Pb      0.000000    0.000000    0.000000 Pb    1 DUM     0.0000 ****
+@<TRIPOS>BOND
+@<TRIPOS>SUBSTRUCTURE
+      1  DUM              1 ****               0 ****  ****
+        '''
+    with open(path + file_name, 'w') as file:
+        file.write(mol2)
+    print('Writing dummy atom `mol2`.')
 
 
 def process_smiles(string, name=None, add_hydrogens=True, add_tripos=True):
@@ -699,3 +829,10 @@ def create_host_mol2(solvated_pdb, amber_prmtop, mask, output_mol2, path='./'):
     # Since `cpptraj` writes the frame number as suffix, move back to desired file name.
     p = sp.Popen(
         ['mv', output_mol2 + '.1', output_mol2], cwd=path, stdout=sp.PIPE)
+
+
+def copy_box_vectors(input_inpcrd, output_inpcrd, path='./'):
+    p = sp.Popen(
+        ['tail', '-n', '1', input_inpcrd, '>>', output_inpcrd],
+        cwd=path,
+        stdout=sp.PIPE)
