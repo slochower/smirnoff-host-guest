@@ -481,7 +481,7 @@ def process_smiles(string, name=None, add_hydrogens=True, add_tripos=True):
     return mol
 
 
-def atom_mapping(reference, target):
+def atom_mapping(reference, target, filter_residue=False):
     """
     Maps between a reference molecule and target molecule using maximum common substructure. For more information, see the example here: https://github.com/openforcefield/openforcefield/blob/6229a51ad77fd5cf20299e53bc9784811cb9443a/openforcefield/typing/engines/smirnoff/forcefield.py#L350
     
@@ -507,6 +507,17 @@ def atom_mapping(reference, target):
     graph_matcher = isomorphism.GraphMatcher(reference_graph, target_graph)
     if graph_matcher.is_isomorphic():
         print('Determining mapping...')
+        if filter_residue is not False:
+            print(f'Mapping mask {filter_residue}...')
+            for (reference_atom, target_atom) in graph_matcher.mapping.items():
+                reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
+                reference_residue = OEAtomGetResidue(reference)
+                reference_resname = reference_residue.GetName()
+                print(f'Found {reference_resname}...')
+                if reference_resname == filter_residue:
+                    reference_to_target_mapping[reference_atom] = target_atom
+                return reference_to_target_mapping
+
         print('Reference → Target')
         for (reference_atom, target_atom) in graph_matcher.mapping.items():
             reference_to_target_mapping[reference_atom] = target_atom
@@ -521,6 +532,7 @@ def atom_mapping(reference, target):
                 f'{target_atom:3d} ({target_name:4})')
     else:
         print('Graph is not isomorphic.')
+
     return reference_to_target_mapping
 
 
@@ -836,3 +848,41 @@ def copy_box_vectors(input_inpcrd, output_inpcrd, path='./'):
         ['tail', '-n', '1', input_inpcrd, '>>', output_inpcrd],
         cwd=path,
         stdout=sp.PIPE)
+
+
+def residue_mapping(input_inpcrd,
+                    input_topology,
+                    target_inpcrd,
+                    target_topology,
+                    mask,
+                    path='./'):
+    """Map atom indices, through a `mol2` intermediate, which is not ideal, because I cannot figure out how to go directly from a ParmEd structure to an OpenEye OEMol.
+    
+    Parameters:
+    ----------
+    reference : {[type]}
+        [description]
+    target : {[type]}
+        [description]
+    mask : {[type]}
+        [description]
+    """
+
+    input = pmd.load_file(input_topology, input_inpcrd)
+    target = pmd.load_file(target_topology, target_inpcrd)
+    # It doesn't work to simply save the mask, because then the `mol2` file indices aren't the same as the indices in the overall file!
+    # input[mask].save(path + 'input.mol2')
+    # target[mask].save(path + 'target.mol2')
+    # Does it work if I just try the whole file...?
+    # Maybe I could save as PDB and grep for atom indices there?
+    input.save(path + 'input.mol2')
+    target.save(path + 'target.mol2')
+    input_OEMol = load_mol2(path + 'input.mol2')
+    target_OEMol = load_mol2(path + 'target.mol2')
+    try:
+        os.remove(path + 'input.mol2')
+        os.remove(path + 'target.mol2')
+    except OSError:
+        pass
+    mapping = atom_mapping(input_OEMol, target_OEMol, filter_residue=mask)
+    return
