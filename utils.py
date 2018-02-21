@@ -510,7 +510,7 @@ def atom_mapping(reference, target, filter_residue=False):
         if filter_residue is not False:
             print(f'Mapping mask {filter_residue}...')
             for (reference_atom, target_atom) in graph_matcher.mapping.items():
-                reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
+                reference = reference.GetAtom(OEHasAtomIdx(reference_atom))
                 reference_residue = OEAtomGetResidue(reference)
                 reference_resname = reference_residue.GetName()
                 print(f'Found {reference_resname}...')
@@ -884,5 +884,39 @@ def residue_mapping(input_inpcrd,
         os.remove(path + 'target.mol2')
     except OSError:
         pass
-    mapping = atom_mapping(input_OEMol, target_OEMol, filter_residue=mask)
-    return
+    if mask:
+        mapping = atom_mapping(input_OEMol, target_OEMol, filter_residue=mask)
+    else:
+        mapping = atom_mapping(input_OEMol, target_OEMol)
+    return mapping
+
+def rewrite_restraints_file(input_restraints, output_restraints, mapping, path='./'):
+    # First, read the existing file...
+    with open(input_restraints, 'r') as disang:
+    lines = []
+    for line in disang:
+        lines.append(line)
+    
+    # Next, rewrite using the fact that Niel has a fixed width for the atom index section...
+    with open(output_restraints, 'w') as my_disang:
+    my_disang.write(lines[0])
+
+    for line in lines[1:]:
+        # Restraint residues...
+        old_restraint_list = line.split()[2]
+        old_restraint_residues = [int(i) for i in old_restraint_list.split(',') if i is not '']
+
+        # Make a list for the new residues...
+        new_restraint_residues = []
+
+        for atom_index in old_restraint_residues:
+            new_restraint_residues.append(mapping[atom_index - 1])
+                
+        new_restraint_string = ','.join([str(i) for i in new_restraint_residues])
+        new_line = line[0:10] + '{0: <18}'.format(new_restraint_string) + line[27:]
+        my_disang.write(new_line)
+
+
+def copy_box(input_crd, output_crd):
+    p = sp.call(
+        [f'tail -n 1 {input_crd} >> {output_crd}'], cwd='.', shell=True)
