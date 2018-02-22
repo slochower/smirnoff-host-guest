@@ -41,6 +41,39 @@ def load_mol2(filename, name=None, add_tripos=True):
         molecules.append(OEMol(mol))
     return molecules[0]
 
+def load_pdb(filename, name=None, add_tripos=True):
+    """
+    Converts a `mol2` file to an `OEMol` object.
+    Parameters
+    ----------
+    filename : str
+        MOL2 file
+    name : str
+        Residue name
+    add_tripos : bool
+        Whether to add Tripos atom names to the file
+
+    Returns
+    -------
+    openeye.oechem.OEMol
+
+    """
+    ifs = oemolistream()
+    flavor = oechem.OEIFlavor_Generic_Default | oechem.OEIFlavor_PDB_Default | oechem. OEIFlavor_PDB_TER | oechem.OEIFlavor_PDB_ALL
+    ifs.SetFlavor(OEFormat_PDB, flavor)
+
+    molecules = []
+    if not ifs.open(filename):
+        print(f'Unable to open {filename} for reading...')
+    for mol in ifs.GetOEGraphMols():
+        if add_tripos:
+            OETriposAtomNames(mol)
+        if name:
+            mol.SetTitle(name)
+        # Add all the molecules in this file to a list, but only return the first one.
+        molecules.append(OEMol(mol))
+    return molecules
+
 
 def check_unique_atom_names(molecule):
     """
@@ -890,33 +923,159 @@ def residue_mapping(input_inpcrd,
         mapping = atom_mapping(input_OEMol, target_OEMol)
     return mapping
 
-def rewrite_restraints_file(input_restraints, output_restraints, mapping, path='./'):
+
+def rewrite_restraints_file(input_restraints,
+                            output_restraints,
+                            mapping,
+                            path='./'):
     # First, read the existing file...
     with open(input_restraints, 'r') as disang:
-    lines = []
-    for line in disang:
-        lines.append(line)
-    
+        lines = []
+        for line in disang:
+            lines.append(line)
+
     # Next, rewrite using the fact that Niel has a fixed width for the atom index section...
     with open(output_restraints, 'w') as my_disang:
-    my_disang.write(lines[0])
+        my_disang.write(lines[0])
 
-    for line in lines[1:]:
-        # Restraint residues...
-        old_restraint_list = line.split()[2]
-        old_restraint_residues = [int(i) for i in old_restraint_list.split(',') if i is not '']
+        for line in lines[1:]:
+            # Restraint residues...
+            old_restraint_list = line.split()[2]
+            old_restraint_residues = [
+                int(i) for i in old_restraint_list.split(',') if i is not ''
+            ]
 
-        # Make a list for the new residues...
-        new_restraint_residues = []
+            # Make a list for the new residues...
+            new_restraint_residues = []
 
-        for atom_index in old_restraint_residues:
-            new_restraint_residues.append(mapping[atom_index - 1])
-                
-        new_restraint_string = ','.join([str(i) for i in new_restraint_residues])
-        new_line = line[0:10] + '{0: <18}'.format(new_restraint_string) + line[27:]
-        my_disang.write(new_line)
+            for atom_index in old_restraint_residues:
+                new_restraint_residues.append(mapping[atom_index - 1])
+
+            new_restraint_string = ','.join(
+                [str(i) for i in new_restraint_residues])
+            new_line = line[0:10] + '{0: <18}'.format(
+                new_restraint_string) + line[27:]
+            my_disang.write(new_line)
+
+
+def rewrite_amber_input_file(input_file, output_file, mapping):
+    # First, read the existing file...
+    with open(input_file, 'r') as file:
+        lines = []
+        for line in file:
+            lines.append(line)
+
+    # Next, rewrite using the fact that Niel has a fixed width for the atom index section...
+    with open(output_file, 'w') as file:
+        for line_number, line in enumerate(lines):
+
+            if 'restraintmask' in line:
+                restraint_mask = line.split()[2:]
+                restraint_mask_line = line_number
+            else:
+                pass
+
+        new_masks = []
+        for mask in restraint_mask:
+            if ':' in mask:
+                if "'" in mask:
+                    mask = mask.replace("'", "")
+                if "," in mask:
+                    mask = mask.replace(",", "")
+                # Now we have masks joined by '|'
+                # Split into residues...
+                if '-' in mask[1:]:
+                    residues = split('-', mask[1:])
+                    new_residues = []
+                    for residue in residues:
+                        new_residue = mapping[int(residue) - 1]
+                        new_residues.append(str(new_residue))
+                else:
+                    residues = split('@', mask[1:])
+                    new_residues = []
+                    for residue in residues[:1]:
+                        new_residue = mapping[int(residue) - 1]
+                        new_residues.append(str(new_residue))
+                if len(new_residues) > 1:
+                    new_mask = ':' + '-'.join(new_residues)
+                else:
+                    new_mask = ':' + new_residues[0] + '@' + residues[1:][0]
+                new_masks.append(new_mask)
+
+        new_restraint_mask = '\'' + ' | '.join(new_masks) + ',' + '\''
+        print(f'{restraint_mask} → {new_restraint_mask}')
+
+        lines[
+            restraint_mask_line] = '  restraintmask = ' + new_restraint_mask + '\n'
+        for line in lines:
+            file.write(line)
 
 
 def copy_box(input_crd, output_crd):
     p = sp.call(
         [f'tail -n 1 {input_crd} >> {output_crd}'], cwd='.', shell=True)
+
+
+def split(delimiters, string, maxsplit=0):
+    #
+    import re
+    regexPattern = '|'.join(map(re.escape, delimiters))
+    return re.split(regexPattern, string, maxsplit)
+
+def residue_mapping(reference_mol, target_mol, filter_residue=False):
+    """
+    Maps between a reference molecule and target molecule using maximum common substructure. For more information, see the example here: https://github.com/openforcefield/openforcefield/blob/6229a51ad77fd5cf20299e53bc9784811cb9443a/openforcefield/typing/engines/smirnoff/forcefield.py#L350
+    
+    Parameters:
+    ----------
+    reference : openeye.oechem.OEMol
+        Reference molecule for mapping
+    target : openeye.oechem.OEMol
+        Target molecule for mapping
+    Returns
+    -------
+    dictionary
+        The mapping between atom numbers in each molecule
+    """
+
+    reference_topology = create_topology(reference_mol)
+    target_topology = create_topology(target_mol)
+
+    reference_graph = create_graph(reference_topology)
+    target_graph = create_graph(target_topology)
+
+    reference_to_target_mapping = dict()
+    graph_matcher = isomorphism.GraphMatcher(reference_graph, target_graph)
+    if graph_matcher.is_isomorphic():
+        print('Determining mapping...')
+        print('Reference → Target')
+        # return graph_matcher.mapping.items()
+        assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
+        for (reference_atom, target_atom) in graph_matcher.mapping.items():
+            # reference_name = reference.GetAtom(
+            #    OEHasAtomIdx(reference_atom)).GetName()
+            #reference_type = reference.GetAtom(
+            #    OEHasAtomIdx(reference_atom)).GetType()
+            print(f'Failing reference atom = {reference_atom}')    
+            reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
+            reference_residue = OEAtomGetResidue(reference)
+            reference_resname = reference_residue.GetName()
+            reference_resnum = reference_residue.GetResidueNumber()
+
+            # target_name = target.GetAtom(OEHasAtomIdx(target_atom)).GetName()
+            target = target_mol.GetAtom(OEHasAtomIdx(target_atom))
+            target_residue = OEAtomGetResidue(target)
+            target_resname = target_residue.GetName()
+            target_resnum = target_residue.GetResidueNumber()
+            
+            reference_to_target_mapping[reference_resnum] = target_resnum
+
+
+
+            print(
+                f'{reference_resname:4} {reference_resnum:3d} → '
+                f'{target_resname:4} {target_resnum:3d}')
+    else:
+        print('Graph is not isomorphic.')
+
+    return reference_to_target_mapping
