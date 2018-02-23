@@ -41,13 +41,14 @@ def load_mol2(filename, name=None, add_tripos=True):
         molecules.append(OEMol(mol))
     return molecules[0]
 
+
 def load_pdb(filename, name=None, add_tripos=True):
     """
-    Converts a `mol2` file to an `OEMol` object.
+    Converts a `pdb` file to an `OEMol` object. By default, this will read dummy atoms.
     Parameters
     ----------
     filename : str
-        MOL2 file
+        PDB file
     name : str
         Residue name
     add_tripos : bool
@@ -59,7 +60,7 @@ def load_pdb(filename, name=None, add_tripos=True):
 
     """
     ifs = oemolistream()
-    flavor = oechem.OEIFlavor_Generic_Default | oechem.OEIFlavor_PDB_Default | oechem. OEIFlavor_PDB_TER | oechem.OEIFlavor_PDB_ALL
+    flavor = oechem.OEIFlavor_Generic_Default | oechem.OEIFlavor_PDB_Default | oechem.OEIFlavor_PDB_TER | oechem.OEIFlavor_PDB_ALL
     ifs.SetFlavor(OEFormat_PDB, flavor)
 
     molecules = []
@@ -72,7 +73,7 @@ def load_pdb(filename, name=None, add_tripos=True):
             mol.SetTitle(name)
         # Add all the molecules in this file to a list, but only return the first one.
         molecules.append(OEMol(mol))
-    return molecules
+    return molecules[0]
 
 
 def check_unique_atom_names(molecule):
@@ -514,15 +515,15 @@ def process_smiles(string, name=None, add_hydrogens=True, add_tripos=True):
     return mol
 
 
-def atom_mapping(reference, target, filter_residue=False):
+def map_atoms(reference_mol, target_mol):
     """
     Maps between a reference molecule and target molecule using maximum common substructure. For more information, see the example here: https://github.com/openforcefield/openforcefield/blob/6229a51ad77fd5cf20299e53bc9784811cb9443a/openforcefield/typing/engines/smirnoff/forcefield.py#L350
     
     Parameters:
     ----------
-    reference : openeye.oechem.OEMol
+    reference_mol : openeye.oechem.OEMol
         Reference molecule for mapping
-    target : openeye.oechem.OEMol
+    target_mol : openeye.oechem.OEMol
         Target molecule for mapping
     Returns
     -------
@@ -530,8 +531,8 @@ def atom_mapping(reference, target, filter_residue=False):
         The mapping between atom numbers in each molecule
     """
 
-    reference_topology = create_topology(reference)
-    target_topology = create_topology(target)
+    reference_topology = create_topology(reference_mol)
+    target_topology = create_topology(target_mol)
 
     reference_graph = create_graph(reference_topology)
     target_graph = create_graph(target_topology)
@@ -540,31 +541,56 @@ def atom_mapping(reference, target, filter_residue=False):
     graph_matcher = isomorphism.GraphMatcher(reference_graph, target_graph)
     if graph_matcher.is_isomorphic():
         print('Determining mapping...')
-        if filter_residue is not False:
-            print(f'Mapping mask {filter_residue}...')
-            for (reference_atom, target_atom) in graph_matcher.mapping.items():
-                reference = reference.GetAtom(OEHasAtomIdx(reference_atom))
-                reference_residue = OEAtomGetResidue(reference)
-                reference_resname = reference_residue.GetName()
-                print(f'Found {reference_resname}...')
-                if reference_resname == filter_residue:
-                    reference_to_target_mapping[reference_atom] = target_atom
-                return reference_to_target_mapping
-
         print('Reference → Target')
         for (reference_atom, target_atom) in graph_matcher.mapping.items():
             reference_to_target_mapping[reference_atom] = target_atom
-            reference_name = reference.GetAtom(
+            reference_name = reference_mol.GetAtom(
                 OEHasAtomIdx(reference_atom)).GetName()
-            reference_type = reference.GetAtom(
+            reference_type = reference_mol.GetAtom(
                 OEHasAtomIdx(reference_atom)).GetType()
-            target_name = target.GetAtom(OEHasAtomIdx(target_atom)).GetName()
-
-            print(
-                f'({reference_name:4} {reference_type:5}) {reference_atom:3d} → '
-                f'{target_atom:3d} ({target_name:4})')
+            target_name = target_mol.GetAtom(OEHasAtomIdx(target_atom)).GetName()
+            # print(
+            #     f'({reference_name:4} {reference_type:5}) {reference_atom:3d} → '
+            #     f'{target_atom:3d} ({target_name:4})')
     else:
         print('Graph is not isomorphic.')
+
+    return reference_to_target_mapping
+
+
+def map_residues(reference_to_target_mapping, reference_mol, target_mol):
+    """
+    Maps between a reference molecule and target molecule using an existing atom mapping. For more information, see the example here: https://github.com/openforcefield/openforcefield/blob/6229a51ad77fd5cf20299e53bc9784811cb9443a/openforcefield/typing/engines/smirnoff/forcefield.py#L350
+    
+    Parameters:
+    ----------
+    reference_to_target_mapping : dict
+        Atom mapping calculated using `map_atoms()`
+    reference_mol : openeye.oechem.OEMol
+        Reference molecule for mapping
+    target_mol : openeye.oechem.OEMol
+        Target molecule for mapping
+    Returns
+    -------
+    dictionary
+        The mapping between residue numbers in each molecule
+    """
+
+    print('Reference → Target')
+    for (reference_atom, target_atom) in reference_to_target_mapping.items():
+        reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
+        reference_residue = OEAtomGetResidue(reference)
+        reference_resname = reference_residue.GetName()
+        reference_resnum = reference_residue.GetResidueNumber()
+
+        target = target_mol.GetAtom(OEHasAtomIdx(target_atom))
+        target_residue = OEAtomGetResidue(target)
+        target_resname = target_residue.GetName()
+        target_resnum = target_residue.GetResidueNumber()
+        reference_to_target_mapping[reference_resnum] = target_resnum
+
+        # print(f'{reference_resname:4} {reference_resnum:3d} → '
+        #         f'{target_resname:4} {target_resnum:3d}')
 
     return reference_to_target_mapping
 
@@ -877,98 +903,92 @@ def create_host_mol2(solvated_pdb, amber_prmtop, mask, output_mol2, path='./'):
 
 
 def copy_box_vectors(input_inpcrd, output_inpcrd, path='./'):
-    p = sp.Popen(
-        ['tail', '-n', '1', input_inpcrd, '>>', output_inpcrd],
-        cwd=path,
-        stdout=sp.PIPE)
+    """    
+    Copy the last line of an existing AMBER `inpcrd` file containing the box vectors and angles to a new `inpcrd`. This helps when the box vector information has been lost. This runs with `shell=True`, so it could be dangerous; I was unable to get this to work with `sp.Popen()`.
 
-
-def residue_mapping(input_inpcrd,
-                    input_topology,
-                    target_inpcrd,
-                    target_topology,
-                    mask,
-                    path='./'):
-    """Map atom indices, through a `mol2` intermediate, which is not ideal, because I cannot figure out how to go directly from a ParmEd structure to an OpenEye OEMol.
-    
     Parameters:
     ----------
-    reference : {[type]}
-        [description]
-    target : {[type]}
-        [description]
-    mask : {[type]}
-        [description]
+    input_inpcrd : str
+        File name of reference `inpcrd`
+    output_inpcrd : str
+        File name of target `inpcrd`
+    """
+    
+    p = sp.call(
+        [f'tail -n 1 {input_crd} >> {output_crd}'], cwd=path, shell=True)
+
+
+def rewrite_restraints_file(reference_restraints,
+                            target_restraints,
+                            reference_to_target_mapping,
+                            path='./'):
+    """
+    Rewrite an existing AMBER restraint file using the *atom* mapping between the two structures. Only the field `iat= ` is modified. 
+    
+    Caveat: this function assumes a fixed-width format of the restraint file (i.e., 18 characters between `iat= ` and `r1= ` -- which works well for us, here -- although I do not believe that is a firm requirement on the AMBER side of things.
+
+    Parameters:
+    ----------
+    reference_restraints : str
+        File name of reference restraints file
+    target_restraits : str
+        File name of target restraints file
+    reference_to_target_mapping : dict
+        The dictionary containing the mapping between atoms in the reference and target molecules
     """
 
-    input = pmd.load_file(input_topology, input_inpcrd)
-    target = pmd.load_file(target_topology, target_inpcrd)
-    # It doesn't work to simply save the mask, because then the `mol2` file indices aren't the same as the indices in the overall file!
-    # input[mask].save(path + 'input.mol2')
-    # target[mask].save(path + 'target.mol2')
-    # Does it work if I just try the whole file...?
-    # Maybe I could save as PDB and grep for atom indices there?
-    input.save(path + 'input.mol2')
-    target.save(path + 'target.mol2')
-    input_OEMol = load_mol2(path + 'input.mol2')
-    target_OEMol = load_mol2(path + 'target.mol2')
-    try:
-        os.remove(path + 'input.mol2')
-        os.remove(path + 'target.mol2')
-    except OSError:
-        pass
-    if mask:
-        mapping = atom_mapping(input_OEMol, target_OEMol, filter_residue=mask)
-    else:
-        mapping = atom_mapping(input_OEMol, target_OEMol)
-    return mapping
-
-
-def rewrite_restraints_file(input_restraints,
-                            output_restraints,
-                            mapping,
-                            path='./'):
     # First, read the existing file...
-    with open(input_restraints, 'r') as disang:
+    with open(reference_restraints, 'r') as disang:
         lines = []
         for line in disang:
             lines.append(line)
 
     # Next, rewrite using the fact that Niel has a fixed width for the atom index section...
-    with open(output_restraints, 'w') as my_disang:
+    with open(target_restraints, 'w') as my_disang:
         my_disang.write(lines[0])
-
         for line in lines[1:]:
-            # Restraint residues...
             old_restraint_list = line.split()[2]
             old_restraint_residues = [
                 int(i) for i in old_restraint_list.split(',') if i is not ''
             ]
 
-            # Make a list for the new residues...
             new_restraint_residues = []
-
             for atom_index in old_restraint_residues:
-                new_restraint_residues.append(mapping[atom_index - 1])
-
+                # Subtract 1 because the atom mapping is 0-based and AMBER uses 1-based indexing
+                new_restraint_residues.append(reference_to_target_mapping[atom_index - 1])
+            # Join the residues with commas
             new_restraint_string = ','.join(
                 [str(i) for i in new_restraint_residues])
+            print(f'{old_restraint_list:18} → {new_restraint_string:18}')
             new_line = line[0:10] + '{0: <18}'.format(
                 new_restraint_string) + line[27:]
             my_disang.write(new_line)
 
 
-def rewrite_amber_input_file(input_file, output_file, mapping):
+def rewrite_amber_input_file(reference_input, target_input, reference_to_target_mapping,
+                            path='./'):
+    """
+    Rewrite an existing AMBER simulation input file using the *residue* mapping between the two structures. Only the positional restraints, specified by `restraintmask` are rewritten.
+    
+    Parameters:
+    ----------
+    reference_input : str
+        File name of reference restraints file
+    target_input : str
+        File name of target restraints file
+    reference_to_target_mapping : dict
+        The dictionary containing the mapping between residues in the reference and target molecules
+    """
+
     # First, read the existing file...
-    with open(input_file, 'r') as file:
+    with open(reference_input, 'r') as file:
         lines = []
         for line in file:
             lines.append(line)
 
-    # Next, rewrite using the fact that Niel has a fixed width for the atom index section...
-    with open(output_file, 'w') as file:
+    with open(target_input, 'w') as file:
         for line_number, line in enumerate(lines):
-
+            # This should gracefully just copy the reference to the target if there are no positional restraints...
             if 'restraintmask' in line:
                 restraint_mask = line.split()[2:]
                 restraint_mask_line = line_number
@@ -977,24 +997,30 @@ def rewrite_amber_input_file(input_file, output_file, mapping):
 
         new_masks = []
         for mask in restraint_mask:
+            # Detect the residue mask by the colon...
             if ':' in mask:
+                # Get rid of the preceeding apostrophe...
                 if "'" in mask:
                     mask = mask.replace("'", "")
+                # Get rid of the comma...
                 if "," in mask:
                     mask = mask.replace(",", "")
-                # Now we have masks joined by '|'
-                # Split into residues...
+                # Now, I expect that we should have one or more masks joined by '|'
+                # Split each mask into one ore more residues...
                 if '-' in mask[1:]:
+                    # If the mask is a range, parse each residue separately...
                     residues = split('-', mask[1:])
                     new_residues = []
                     for residue in residues:
-                        new_residue = mapping[int(residue) - 1]
+                        # Subtract 1 because the residue mapping is 0-based and AMBER uses 1-based indexing
+                        new_residue = reference_to_target_mapping[int(residue) - 1]
                         new_residues.append(str(new_residue))
                 else:
+                    # If the mask is atom-based, we only want to modify the residue portion...
                     residues = split('@', mask[1:])
                     new_residues = []
                     for residue in residues[:1]:
-                        new_residue = mapping[int(residue) - 1]
+                        new_residue = reference_to_target_mapping[int(residue) - 1]
                         new_residues.append(str(new_residue))
                 if len(new_residues) > 1:
                     new_mask = ':' + '-'.join(new_residues)
@@ -1004,78 +1030,15 @@ def rewrite_amber_input_file(input_file, output_file, mapping):
 
         new_restraint_mask = '\'' + ' | '.join(new_masks) + ',' + '\''
         print(f'{restraint_mask} → {new_restraint_mask}')
-
+        # Rewrite this single line in `lines` array containing the contents of the reference file...
         lines[
             restraint_mask_line] = '  restraintmask = ' + new_restraint_mask + '\n'
         for line in lines:
             file.write(line)
 
 
-def copy_box(input_crd, output_crd):
-    p = sp.call(
-        [f'tail -n 1 {input_crd} >> {output_crd}'], cwd='.', shell=True)
-
-
 def split(delimiters, string, maxsplit=0):
-    #
+    # https://stackoverflow.com/a/13184791
     import re
     regexPattern = '|'.join(map(re.escape, delimiters))
     return re.split(regexPattern, string, maxsplit)
-
-def residue_mapping(reference_mol, target_mol, filter_residue=False):
-    """
-    Maps between a reference molecule and target molecule using maximum common substructure. For more information, see the example here: https://github.com/openforcefield/openforcefield/blob/6229a51ad77fd5cf20299e53bc9784811cb9443a/openforcefield/typing/engines/smirnoff/forcefield.py#L350
-    
-    Parameters:
-    ----------
-    reference : openeye.oechem.OEMol
-        Reference molecule for mapping
-    target : openeye.oechem.OEMol
-        Target molecule for mapping
-    Returns
-    -------
-    dictionary
-        The mapping between atom numbers in each molecule
-    """
-
-    reference_topology = create_topology(reference_mol)
-    target_topology = create_topology(target_mol)
-
-    reference_graph = create_graph(reference_topology)
-    target_graph = create_graph(target_topology)
-
-    reference_to_target_mapping = dict()
-    graph_matcher = isomorphism.GraphMatcher(reference_graph, target_graph)
-    if graph_matcher.is_isomorphic():
-        print('Determining mapping...')
-        print('Reference → Target')
-        # return graph_matcher.mapping.items()
-        assert reference_mol.GetMaxAtomIdx() == target_mol.GetMaxAtomIdx()
-        for (reference_atom, target_atom) in graph_matcher.mapping.items():
-            # reference_name = reference.GetAtom(
-            #    OEHasAtomIdx(reference_atom)).GetName()
-            #reference_type = reference.GetAtom(
-            #    OEHasAtomIdx(reference_atom)).GetType()
-            print(f'Failing reference atom = {reference_atom}')    
-            reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
-            reference_residue = OEAtomGetResidue(reference)
-            reference_resname = reference_residue.GetName()
-            reference_resnum = reference_residue.GetResidueNumber()
-
-            # target_name = target.GetAtom(OEHasAtomIdx(target_atom)).GetName()
-            target = target_mol.GetAtom(OEHasAtomIdx(target_atom))
-            target_residue = OEAtomGetResidue(target)
-            target_resname = target_residue.GetName()
-            target_resnum = target_residue.GetResidueNumber()
-            
-            reference_to_target_mapping[reference_resnum] = target_resnum
-
-
-
-            print(
-                f'{reference_resname:4} {reference_resnum:3d} → '
-                f'{target_resname:4} {target_resnum:3d}')
-    else:
-        print('Graph is not isomorphic.')
-
-    return reference_to_target_mapping
