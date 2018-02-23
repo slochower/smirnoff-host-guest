@@ -1,9 +1,0 @@
-
-    source leaprc.protein.ff14sb
-    source leaprc.gaff
-    loadamberparams frcmod.dum
-    DUM = loadmol2 dum.mol2
-    mol = loadpdb dummy.pdb
-    saveamberparm mol dummy.prmtop dummy.inpcrd
-    quit
-        

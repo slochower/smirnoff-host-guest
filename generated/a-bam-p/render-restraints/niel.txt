@@ -1,0 +1,3 @@
+amber
+../../../original/a-bam-p/full.topo
+../../../original/a-bam-p/full.crds

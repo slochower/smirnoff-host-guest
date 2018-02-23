@@ -42,6 +42,40 @@ def load_mol2(filename, name=None, add_tripos=True):
     return molecules[0]
 
 
+def save_mol2(molecule, filename):
+    """
+    Saves an `OEMol` object as `mol2` file.
+    Parameters
+    ----------
+    molecule : openeye.oechem.OEMol
+        Molecule to save
+    filename : str
+        MOL2 file
+
+    """
+    ofs = oemolostream()
+    ofs.SetFormat(OEFormat_MOL2H)
+    if ofs.open(filename):
+        OEWriteMolecule(ofs, molecule)
+    else:
+        pint(f'Unable to open {filename} for writing...')
+
+
+def convert_mol2_to_sybyl(input_mol2, output_mol2):
+    """
+    Convert an otherwise formatted `mol2` file into a `mol2` file with SYBYL atom types.
+    
+    Parameters:
+    ----------
+    input_mol2 : str
+        File name of existing `mol2`
+    output_mol2 : str
+        File name of destination `mol2`
+    """
+    structure = load_mol2(input_mol2)
+    save_mol2(structure, output_mol2)
+
+
 def load_pdb(filename, name=None, add_tripos=True):
     """
     Converts a `pdb` file to an `OEMol` object. By default, this will read dummy atoms.
@@ -60,7 +94,7 @@ def load_pdb(filename, name=None, add_tripos=True):
 
     """
     ifs = oemolistream()
-    flavor = oechem.OEIFlavor_Generic_Default | oechem.OEIFlavor_PDB_Default | oechem.OEIFlavor_PDB_TER | oechem.OEIFlavor_PDB_ALL
+    flavor = oechem.OEIFlavor_Generic_Default | oechem.OEIFlavor_PDB_Default | oechem.OEIFlavor_PDB_ALL
     ifs.SetFlavor(OEFormat_PDB, flavor)
 
     molecules = []
@@ -548,10 +582,10 @@ def map_atoms(reference_mol, target_mol):
                 OEHasAtomIdx(reference_atom)).GetName()
             reference_type = reference_mol.GetAtom(
                 OEHasAtomIdx(reference_atom)).GetType()
-            target_name = target_mol.GetAtom(OEHasAtomIdx(target_atom)).GetName()
-            # print(
-            #     f'({reference_name:4} {reference_type:5}) {reference_atom:3d} → '
-            #     f'{target_atom:3d} ({target_name:4})')
+            target_name = target_mol.GetAtom(
+                OEHasAtomIdx(target_atom)).GetName()
+            print(f'({reference_name:5} {reference_atom:3d} → '
+                  f'{target_atom:3d} ({target_name:5})')
     else:
         print('Graph is not isomorphic.')
 
@@ -576,23 +610,27 @@ def map_residues(reference_to_target_mapping, reference_mol, target_mol):
         The mapping between residue numbers in each molecule
     """
 
+    reference_to_target_residue_mapping = dict()
     print('Reference → Target')
     for (reference_atom, target_atom) in reference_to_target_mapping.items():
         reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
+        reference_name = reference.GetName()
         reference_residue = OEAtomGetResidue(reference)
         reference_resname = reference_residue.GetName()
         reference_resnum = reference_residue.GetResidueNumber()
 
         target = target_mol.GetAtom(OEHasAtomIdx(target_atom))
+        target_name = target.GetName()
         target_residue = OEAtomGetResidue(target)
         target_resname = target_residue.GetName()
         target_resnum = target_residue.GetResidueNumber()
-        reference_to_target_mapping[reference_resnum] = target_resnum
+        reference_to_target_residue_mapping[reference_resnum] = target_resnum
 
-        # print(f'{reference_resname:4} {reference_resnum:3d} → '
-        #         f'{target_resname:4} {target_resnum:3d}')
+        print(
+            f'{reference_name:5} {reference_resname:5} ({reference_atom:4d}) {reference_resnum:4d} → {target_resnum:4d} ({target_atom:4d}) {target_name:5} {target_resname:5}'
+        )
 
-    return reference_to_target_mapping
+    return reference_to_target_residue_mapping
 
 
 def create_topology(mol):
@@ -913,9 +951,9 @@ def copy_box_vectors(input_inpcrd, output_inpcrd, path='./'):
     output_inpcrd : str
         File name of target `inpcrd`
     """
-    
+
     p = sp.call(
-        [f'tail -n 1 {input_crd} >> {output_crd}'], cwd=path, shell=True)
+        [f'tail -n 1 {input_inpcrd} >> {output_inpcrd}'], cwd=path, shell=True)
 
 
 def rewrite_restraints_file(reference_restraints,
@@ -954,8 +992,8 @@ def rewrite_restraints_file(reference_restraints,
 
             new_restraint_residues = []
             for atom_index in old_restraint_residues:
-                # Subtract 1 because the atom mapping is 0-based and AMBER uses 1-based indexing
-                new_restraint_residues.append(reference_to_target_mapping[atom_index - 1])
+                new_restraint_residues.append(
+                    reference_to_target_mapping[atom_index - 1] + 1)
             # Join the residues with commas
             new_restraint_string = ','.join(
                 [str(i) for i in new_restraint_residues])
@@ -965,8 +1003,10 @@ def rewrite_restraints_file(reference_restraints,
             my_disang.write(new_line)
 
 
-def rewrite_amber_input_file(reference_input, target_input, reference_to_target_mapping,
-                            path='./'):
+def rewrite_amber_input_file(reference_input,
+                             target_input,
+                             reference_to_target_mapping,
+                             path='./'):
     """
     Rewrite an existing AMBER simulation input file using the *residue* mapping between the two structures. Only the positional restraints, specified by `restraintmask` are rewritten.
     
@@ -1012,15 +1052,14 @@ def rewrite_amber_input_file(reference_input, target_input, reference_to_target_
                     residues = split('-', mask[1:])
                     new_residues = []
                     for residue in residues:
-                        # Subtract 1 because the residue mapping is 0-based and AMBER uses 1-based indexing
-                        new_residue = reference_to_target_mapping[int(residue) - 1]
+                        new_residue = reference_to_target_mapping[int(residue)]
                         new_residues.append(str(new_residue))
                 else:
                     # If the mask is atom-based, we only want to modify the residue portion...
                     residues = split('@', mask[1:])
                     new_residues = []
                     for residue in residues[:1]:
-                        new_residue = reference_to_target_mapping[int(residue) - 1]
+                        new_residue = reference_to_target_mapping[int(residue)]
                         new_residues.append(str(new_residue))
                 if len(new_residues) > 1:
                     new_mask = ':' + '-'.join(new_residues)
@@ -1028,7 +1067,7 @@ def rewrite_amber_input_file(reference_input, target_input, reference_to_target_
                     new_mask = ':' + new_residues[0] + '@' + residues[1:][0]
                 new_masks.append(new_mask)
 
-        new_restraint_mask = '\'' + ' | '.join(new_masks) + ',' + '\''
+        new_restraint_mask = '\'' + ' | '.join(new_masks) + '\'' + ','
         print(f'{restraint_mask} → {new_restraint_mask}')
         # Rewrite this single line in `lines` array containing the contents of the reference file...
         lines[
@@ -1042,3 +1081,66 @@ def split(delimiters, string, maxsplit=0):
     import re
     regexPattern = '|'.join(map(re.escape, delimiters))
     return re.split(regexPattern, string, maxsplit)
+
+
+def color_restraints(restraint_file, color, suffix, md_file, path='./'):
+    """
+    Write a bash script to render restraints in Chimera using the atom indices specifed in an AMBER restraint file (i.e., `disang.rest`).
+
+    Parameters:
+    ----------
+    restraint_file : str
+        AMBER restraint file
+    color : str
+        Color of restraints in Chimera
+    suffix : str
+        Suffix of Chimera command and rendered files
+    md_file : str
+        Chimera "metafile" to load trajectory 
+        # http://plato.cgl.ucsf.edu/pipermail/chimera-users/2015-May/011036.html
+    """
+
+    try:
+        os.stat(path)
+    except:
+        os.mkdir(path)
+
+    # First, read the existing file...
+    with open(restraint_file, 'r') as disang:
+        with open(f'{path}/render-{suffix}.sh', 'w') as script:
+
+            lines = []
+            for line in disang:
+                lines.append(line)
+
+            for line_index, line in enumerate(lines[1:]):
+                old_restraint_list = line.split()[2]
+                old_restraint_residues = [
+                    int(i) for i in old_restraint_list.split(',')
+                    if i is not ''
+                ]
+
+                with open(f'{path}/restraint-{line_index:02.0f}-{suffix}.cmd',
+                          'w') as chimera:
+                    chimera.write('sleep 1\n')
+                    chimera.write('~display :WAT\n')
+                    chimera.write('~display :Na+\n')
+                    chimera.write('turn y 90\n')
+                    chimera.write('color grey\n')
+
+                    for residue in old_restraint_residues:
+                        chimera.write(
+                            f'color {color} @/serialNumber={residue}\n')
+                        chimera.write(f'repr bs @/serialNumber={residue}\n')
+
+                    chimera.write(
+                        f'2dlabel create title text "{old_restraint_list}" xpos 0.1 ypos 0.92 color black\n'
+                    )
+
+                    chimera.write(
+                        f'copy file restraint-{line_index:02.0f}-{suffix}.png\n'
+                    )
+                    chimera.write('stop')
+                    script.write(
+                        f'chimera md:{md_file} restraint-{line_index:02.0f}-{suffix}.cmd \n'
+                    )

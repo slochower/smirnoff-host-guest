@@ -1,6 +1,0 @@
-
-    parm original/a-bam-p/full.topo
-    trajin original/a-bam-p/full.crds
-    strip !:DUM
-    trajout generated/a-bam-p/dummy.pdb
-        

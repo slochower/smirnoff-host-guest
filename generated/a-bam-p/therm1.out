@@ -1,30 +1,32 @@
 
           -------------------------------------------------------
-          Amber 16 PMEMD                              2016
+          Amber 16 SANDER                              2016
           -------------------------------------------------------
 
-| PMEMD implementation of SANDER, Release 16
+| Run on 02/23/2018 at 12:39:17
 
-| Run on 02/13/2018 at 16:10:58
-
-|   Executable path: pmemd.cuda
+|   Executable path: sander
 | Working directory: /home/dslochower/hgst-3tb-data/projects/smirnoff-host-guest/generated/a-bam-p
 |          Hostname: warthog
 
   [-O]verwriting output
 
 File Assignments:
-|   MDIN: therm1.in                                                             
-|  MDOUT: therm1.out                                                            
-| INPCRD: mini.rst                                                              
-|   PARM: solvated_smirnoff.prmtop                                              
-| RESTRT: therm1.rst                                                            
-|   REFC: solvated_smirnoff.inpcrd                                              
-|  MDVEL: mdvel                                                                 
-|   MDEN: mden                                                                  
-|  MDCRD: mdcrd                                                                 
-| MDINFO: therm1.mdinfo                                                         
-|  MDFRC: mdfrc                                                                 
+|  MDIN: therm1.in                                                             
+| MDOUT: therm1.out                                                            
+|INPCRD: solvated_smirnoff.inpcrd                                              
+|  PARM: solvated_smirnoff.prmtop                                              
+|RESTRT: therm1.rst                                                            
+|  REFC: solvated_smirnoff.inpcrd                                              
+| MDVEL: mdvel                                                                 
+| MDFRC: mdfrc                                                                 
+|  MDEN: mden                                                                  
+| MDCRD: mdcrd                                                                 
+|MDINFO: /dev/null                                                             
+|  MTMD: mtmd                                                                  
+|INPDIP: inpdip                                                                
+|RSTDIP: rstdip                                                                
+|INPTRA: inptraj                                                               
 
 
  Here is the input file:
@@ -52,10 +54,10 @@ Thermalizing, NVT.
   ig = -1,                                                                     
   ntp = 0,                                                                     
   nstlim = 500,                                                                
-  dt = 0.004,                                                                  
+  dt = 0.002,                                                                  
   ntr = 1,                                                                     
   restraint_wt = 50.0,                                                         
-  restraintmask = ':1-3 | :10@C4 | :10@N1',                                    
+  restraintmask = ':8-10 | :7@C4 | :7@N1',                                     
   nmropt = 1,                                                                  
   pencut = -1,                                                                 
  /                                                                             
@@ -64,73 +66,168 @@ DISANG=disang.rest
 LISTOUT=POUT                                                                   
                                                                                
 
+--------------------------------------------------------------------------------
+   1.  RESOURCE   USE: 
+--------------------------------------------------------------------------------
 
-Note: ig = -1. Setting random seed to    16179 based on wallclock time in 
-      microseconds.
- 
-|--------------------- INFORMATION ----------------------
-| GPU (CUDA) Version of PMEMD in use: NVIDIA GPU IN USE.
-|                    Version 16.0.0
-| 
-|                      02/25/2016
-| 
-| Implementation by:
-|                    Ross C. Walker     (SDSC)
-|                    Scott Le Grand     (nVIDIA)
-| 
-| Precision model in use:
-|      [SPFP] - Single Precision Forces, 64-bit Fixed Point
-|               Accumulation. (Default)
-| 
-|--------------------------------------------------------
- 
-|----------------- CITATION INFORMATION -----------------
-|
-|    When publishing work that utilized the CUDA version
-|    of AMBER, please cite the following in addition to
-|    the regular AMBER citations:
-|
-|  - Romelia Salomon-Ferrer; Andreas W. Goetz; Duncan
-|    Poole; Scott Le Grand; Ross C. Walker "Routine
-|    microsecond molecular dynamics simulations with
-|    AMBER - Part II: Particle Mesh Ewald", J. Chem.
-|    Theory Comput., 2013, 9 (9), pp3878-3888,
-|    DOI: 10.1021/ct400314y.
-|
-|  - Andreas W. Goetz; Mark J. Williamson; Dong Xu;
-|    Duncan Poole; Scott Le Grand; Ross C. Walker
-|    "Routine microsecond molecular dynamics simulations
-|    with AMBER - Part I: Generalized Born", J. Chem.
-|    Theory Comput., 2012, 8 (5), pp1542-1555.
-|
-|  - Scott Le Grand; Andreas W. Goetz; Ross C. Walker
-|    "SPFP: Speed without compromise - a mixed precision
-|    model for GPU accelerated molecular dynamics
-|    simulations.", Comp. Phys. Comm., 2013, 184
-|    pp374-380, DOI: 10.1016/j.cpc.2012.09.022
-|
-|--------------------------------------------------------
- 
-|------------------- GPU DEVICE INFO --------------------
-|
-|            CUDA_VISIBLE_DEVICES: not set
-|   CUDA Capable Devices Detected:      2
-|           CUDA Device ID in use:      1
-|                CUDA Device Name: GeForce GTX TITAN
-|     CUDA Device Global Mem Size:   6082 MB
-| CUDA Device Num Multiprocessors:     14
-|           CUDA Device Core Freq:   0.88 GHz
-|
-|--------------------------------------------------------
- 
- 
-| Conditional Compilation Defines Used:
-| PUBFFT
-| BINTRAJ
-| CUDA
-| EMIL
+| Flags:                                                                        
+ getting new box info from bottom of inpcrd
+|  INFO: Old style inpcrd file read
 
-| Largest sphere to fit in unit cell has radius =    19.430
-
+| peek_ewald_inpcrd: Box info found
+|Largest sphere to fit in unit cell has radius =    19.430
 | New format PARM file being parsed.
-| Version =    1.000 Date = 02/13/18 Time = 16:10:35
+| Version =    1.000 Date = 02/23/18 Time = 10:15:02
+ NATOM  =    6159 NTYPES =     148 NBONH =    6072 MBONA  =      76
+ NTHETH =     165 MTHETA =     111 NPHIH =     304 MPHIA  =     202
+ NHPARM =       0 NPARM  =       0 NNB   =    8861 NRES   =    2023
+ NBONA  =      76 NTHETA =     111 NPHIA =     202 NUMBND =       8
+ NUMANG =       4 NPTRA  =     420 NATYP =       1 NPHB   =       0
+ IFBOX  =       0 NMXRS  =      21 IFCAP =       0 NEXTRA =       0
+ NCOPY  =       0
+
+
+|     Memory Use     Allocated
+|     Real              540983
+|     Hollerith          20502
+|     Integer           208304
+|     Max Pairs        2732543
+|     nblistReal         73908
+|     nblist Int        276948
+|       Total            17453 kbytes
+
+| Note: 1-4 EEL scale factors are being read from the topology file.
+
+| Note: 1-4 VDW scale factors are being read from the topology file.
+| Duplicated    0 dihedrals
+| Duplicated    0 dihedrals
+Note: ig = -1. Setting random seed to   424693 based on wallclock time in microseconds.
+
+--------------------------------------------------------------------------------
+   2.  CONTROL  DATA  FOR  THE  RUN
+--------------------------------------------------------------------------------
+
+                                                                                
+
+General flags:
+     imin    =       0, nmropt  =       1
+
+Nature and format of input:
+     ntx     =       1, irest   =       0, ntrx    =       1
+
+Nature and format of output:
+     ntxo    =       2, ntpr    =     500, ntrx    =       1, ntwr    =     500
+     iwrap   =       1, ntwx    =       0, ntwv    =       0, ntwe    =       0
+     ioutfm  =       1, ntwprt  =       0, idecomp =       0, rbornstat=      0
+
+Potential function:
+     ntf     =       2, ntb     =       1, igb     =       0, nsnb    =      25
+     ipol    =       0, gbsa    =       0, iesp    =       0
+     dielc   =   1.00000, cut     =   9.00000, intdiel =   1.00000
+
+Frozen or restrained atoms:
+     ibelly  =       0, ntr     =       1
+     restraint_wt =  50.00000
+
+Molecular dynamics:
+     nstlim  =       500, nscm    =         0, nrespa  =         1
+     t       =   0.00000, dt      =   0.00200, vlimit  =  20.00000
+
+Langevin dynamics temperature regulation:
+     ig      =  424693
+     temp0   =  10.00000, tempi   =  10.00000, gamma_ln=   1.00000
+
+SHAKE:
+     ntc     =       2, jfastw  =       0
+     tol     =   0.00001
+
+NMR refinement options:
+     iscale  =       0, noeskp  =       1, ipnlty  =       1, mxsub   =       1
+     scalm   = 100.00000, pencut  =  -1.00000, tausw   =   0.10000
+
+Ewald parameters:
+     verbose =       0, ew_type =       0, nbflag  =       1, use_pme =       1
+     vdwmeth =       1, eedmeth =       1, netfrc  =       1
+     Box X =   38.861   Box Y =   39.115   Box Z =   56.412
+     Alpha =   90.000   Beta  =   90.000   Gamma =   90.000
+     NFFT1 =   40       NFFT2 =   40       NFFT3 =   60
+     Cutoff=    9.000   Tol   =0.100E-04
+     Ewald Coefficient =  0.30768
+     Interpolation order =    4
+
+    LOADING THE CONSTRAINED ATOMS AS GROUPS
+
+
+   5.  REFERENCE ATOM COORDINATES
+
+      
+     Mask :8-10 | :7@C4 | :7@N1; matches     5 atoms
+
+--------------------------------------------------------------------------------
+   3.  ATOMIC COORDINATES AND VELOCITIES
+--------------------------------------------------------------------------------
+
+                                                                                
+ begin time read from input coords =     0.000 ps
+
+
+
+           Begin reading energy term weight changes/NMR restraints
+ WEIGHT CHANGES:
+                         ** No weight changes given **
+
+ RESTRAINTS:
+ Requested file redirections:
+  DISANG    = disang.rest
+  LISTOUT   = POUT
+ Restraints will be read from file: disang.rest
+Here are comments from the DISANG input file:
+#AnchorAtoms :4@O3 :6@C1 :8@C6 :10@C4 :10@N1 #Type a #Weight 0.00 #TransDist 0.0
+
+                       Number of restraints read =    34
+
+                  Done reading weight changes/NMR restraints
+
+
+ Number of triangulated 3-point waters found:     2000
+
+     Sum of charges from parm topology file =  -0.00000003
+     Forcing neutrality...
+
+--------------------------------------------------------------------------------
+   4.  RESULTS
+--------------------------------------------------------------------------------
+
+|  # of SOLUTE  degrees of freedom (RNDFP):   12405.
+|  # of SOLVENT degrees of freedom (RNDFS):       0.
+|  NDFMIN =   12405.     NUM_NOSHAKE =      0     CORRECTED RNDFP =   12405.
+|  TOTAL # of degrees of freedom (RNDF) =   12405.
+ ---------------------------------------------------
+ APPROXIMATING switch and d/dx switch using CUBIC SPLINE INTERPOLATION
+ using   5000.0 points per unit in tabled values
+ TESTING RELATIVE ERROR over r ranging from 0.0 to cutoff
+| CHECK switch(x): max rel err =   0.2738E-14   at   2.422500
+| CHECK d/dx switch(x): max rel err =   0.8314E-11   at   2.736960
+ ---------------------------------------------------
+| Local SIZE OF NONBOND LIST =    1275923
+| TOTAL SIZE OF NONBOND LIST =    1275923
+
+ NSTEP =        0   TIME(PS) =       0.000  TEMP(K) =    15.21  PRESS =     0.0
+ Etot   =  30472661.0294  EKtot   =       187.4546  EPtot      =  30472473.5748
+ BOND   =    153175.6864  ANGLE   =        33.4331  DIHED      =       114.2164
+ 1-4 NB =    115116.7206  1-4 EEL =       704.9679  VDWAALS    =  30221930.5126
+ EELEC  =    -18601.9621  EHBOND  =         0.0000  RESTRAINT  =         0.0000
+ EAMBER (non-restraint)  =  30472473.5748
+ Ewald error estimate:   0.6584E-03
+ ------------------------------------------------------------------------------
+
+ NMR restraints: Bond =    0.000   Angle =     0.000   Torsion =     0.000
+===============================================================================
+vlimit exceeded for step      0; vmax = **********
+
+     Coordinate resetting (SHAKE) cannot be accomplished,
+     deviation is too large
+     NITER, NIT, LL, I and J are :      0      0      3      6      7
+
+     Note: This is usually a symptom of some deeper
+     problem with the energetics of the system.
