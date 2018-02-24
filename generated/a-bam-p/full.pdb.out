@@ -4,8 +4,8 @@ CPPTRAJ: Trajectory Analysis. V17.00
      | \/ | \/ | \/ | 
     _|_/\_|_/\_|_/\_|_
 
-| Date/time: 02/23/18 10:14:55
-| Available memory: 828.531 MB
+| Date/time: 02/24/18 08:54:40
+| Available memory: 4.441 GB
 
 INPUT: Reading input from 'generated/a-bam-p/full.pdb.in'
   [parm original/a-bam-p/full.topo]
@@ -33,20 +33,20 @@ Warning: No PDB space group specified.
 100% Complete.
 
 Read 1 frames and processed 1 frames.
-TIME: Avg. throughput= 55.8628 frames / second.
+TIME: Avg. throughput= 60.7017 frames / second.
 
 ACTION OUTPUT:
 
 RUN TIMING:
-TIME:		Init               : 0.0000 s (  0.06%)
-TIME:		Trajectory Process : 0.0179 s ( 79.55%)
+TIME:		Init               : 0.0000 s (  0.05%)
+TIME:		Trajectory Process : 0.0165 s ( 79.62%)
 TIME:		Action Post        : 0.0000 s (  0.00%)
 TIME:		Analysis           : 0.0000 s (  0.00%)
 TIME:		Data File Write    : 0.0000 s (  0.00%)
-TIME:		Other              : 0.0046 s (  0.20%)
-TIME:	Run Total 0.0225 s
+TIME:		Other              : 0.0042 s (  0.20%)
+TIME:	Run Total 0.0207 s
 ---------- RUN END ---------------------------------------------------
-TIME: Total execution time: 0.0346 seconds.
+TIME: Total execution time: 0.0318 seconds.
 --------------------------------------------------------------------------------
 To cite CPPTRAJ use:
 Daniel R. Roe and Thomas E. Cheatham, III, "PTRAJ and CPPTRAJ: Software for

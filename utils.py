@@ -11,7 +11,7 @@ from openforcefield.typing.engines.smirnoff import *
 from networkx.algorithms import isomorphism
 
 
-def load_mol2(filename, name=None, add_tripos=True):
+def load_mol2(filename, name=None, add_tripos=True, flavor='FF'):
     """
     Converts a `mol2` file to an `OEMol` object.
     Parameters
@@ -28,7 +28,12 @@ def load_mol2(filename, name=None, add_tripos=True):
     openeye.oechem.OEMol
 
     """
+
     ifs = oemolistream()
+    if flavor is not None:
+        flavor = OEIFlavor_MOL2_Forcefield
+        ifs.SetFlavor(OEFormat_MOL2, flavor)
+
     molecules = []
     if not ifs.open(filename):
         print(f'Unable to open {filename} for reading...')
@@ -61,7 +66,7 @@ def save_mol2(molecule, filename):
         pint(f'Unable to open {filename} for writing...')
 
 
-def convert_mol2_to_sybyl(input_mol2, output_mol2):
+def convert_mol2_to_sybyl_openeye(input_mol2, output_mol2):
     """
     Convert an otherwise formatted `mol2` file into a `mol2` file with SYBYL atom types.
     
@@ -74,6 +79,81 @@ def convert_mol2_to_sybyl(input_mol2, output_mol2):
     """
     structure = load_mol2(input_mol2)
     save_mol2(structure, output_mol2)
+
+def check_bond_lengths(structure, threshold):
+    """
+    Print out any equilibrium bond lengths above a certain threshold, to make sure all the assigned parameters are sensible.
+    
+    Parameters:
+    ----------
+    structure : pmd.structure
+        ParmEd structure with parameters
+    threshold : float
+        Bond length (`R eq`)
+    """
+    bad_bonds = False
+    for bond in structure.bonds:
+        atom1, atom2 = bond.atom1, bond.atom2
+        if bond.type is not None:
+            if bond.type.req > threshold:
+                print(f'{atom1.idx + 1:7d} {atom1.name:4} ({atom1.type:4}) {atom2.idx + 1:7d} '
+                    f'{atom2.name:4} ({atom2.type:4}) {bond.type.req:10.4f} {bond.type.k:10.4f}')
+                bad_bonds = True
+    if not bad_bonds:
+        print('Structure looks good.')
+
+
+def convert_mol2_to_sybyl_antechamber(input_mol2, output_mol2, ac_doctor=False, path='./'):
+    """
+    Convert an otherwise formatted `mol2` file into a `mol2` file with SYBYL atom types.
+    
+    Parameters:
+    ----------
+    input_mol2 : str
+        File name of existing `mol2`
+    output_mol2 : str
+        File name of destination `mol2`
+    ac_doctor : str
+        Whether to disable `acdoctor`, e.g., for carboxylates
+    path : str
+        Execution directory
+    """
+    if ac_doctor:
+        antechamber = \
+        f'''
+        antechamber -i {input_mol2} -fi mol2 -o {output_mol2} -fo mol2 -at sybyl
+        '''
+    if not ac_doctor:
+        antechamber = \
+        f'''    
+        antechamber -i {input_mol2} -fi mol2 -o {output_mol2} -fo mol2 -at sybyl -dr n
+        '''
+
+    antechamber_output = output_mol2 + '.out'
+    antechamber_input = output_mol2 + '.in'
+    with open(path + antechamber_input, 'w') as file:
+        file.write('#!/usr/bin/env bash\n')
+        file.write('source $AMBERHOME/amber.sh\n')
+        file.write(antechamber)
+    with open(path + antechamber_output, 'w') as file:
+        p = sp.Popen(
+            ['bash', path + antechamber_input],
+            cwd=path,
+            stdout=file,
+            stderr=file)
+        output, error = p.communicate()
+    if p.returncode == 0:
+        print('MOL2 file written by antechamber.')
+    elif p.returncode == 1:
+        print('Error returned by antechamber.')
+        print(f'Output: {output}')
+        print(f'Error: {error}')
+        p = sp.Popen(['cat', antechamber_output], cwd=path, stdout=sp.PIPE)
+        for line in p.stdout:
+            print(line.decode("utf-8").strip(), )
+    else:
+        print(f'Output: {output}')
+        print(f'Error: {error}')
 
 
 def load_pdb(filename, name=None, add_tripos=True):
@@ -575,7 +655,7 @@ def map_atoms(reference_mol, target_mol):
     graph_matcher = isomorphism.GraphMatcher(reference_graph, target_graph)
     if graph_matcher.is_isomorphic():
         print('Determining mapping...')
-        print('Reference → Target')
+        # print('Reference → Target')
         for (reference_atom, target_atom) in graph_matcher.mapping.items():
             reference_to_target_mapping[reference_atom] = target_atom
             reference_name = reference_mol.GetAtom(
@@ -584,8 +664,8 @@ def map_atoms(reference_mol, target_mol):
                 OEHasAtomIdx(reference_atom)).GetType()
             target_name = target_mol.GetAtom(
                 OEHasAtomIdx(target_atom)).GetName()
-            print(f'({reference_name:5} {reference_atom:3d} → '
-                  f'{target_atom:3d} ({target_name:5})')
+            # print(f'({reference_name:5} {reference_atom:3d} → '
+            #       f'{target_atom:3d} ({target_name:5})')
     else:
         print('Graph is not isomorphic.')
 
@@ -611,7 +691,7 @@ def map_residues(reference_to_target_mapping, reference_mol, target_mol):
     """
 
     reference_to_target_residue_mapping = dict()
-    print('Reference → Target')
+    # print('Reference → Target')
     for (reference_atom, target_atom) in reference_to_target_mapping.items():
         reference = reference_mol.GetAtom(OEHasAtomIdx(reference_atom))
         reference_name = reference.GetName()
@@ -626,9 +706,9 @@ def map_residues(reference_to_target_mapping, reference_mol, target_mol):
         target_resnum = target_residue.GetResidueNumber()
         reference_to_target_residue_mapping[reference_resnum] = target_resnum
 
-        print(
-            f'{reference_name:5} {reference_resname:5} ({reference_atom:4d}) {reference_resnum:4d} → {target_resnum:4d} ({target_atom:4d}) {target_name:5} {target_resname:5}'
-        )
+        # print(
+        #    f'{reference_name:5} {reference_resname:5} ({reference_atom:4d}) {reference_resnum:4d} # → {target_resnum:4d} ({target_atom:4d}) {target_name:5} {target_resname:5}'
+        # )
 
     return reference_to_target_residue_mapping
 
