@@ -117,42 +117,45 @@ def process_directory(source_directory='original/',
         print('Check if solvated coordinate file already exists...')
 
 
-reference = pmd.load_file(source_directory + source_top,
-                          source_directory + source_crd)
-try:
-    reference.save(destination_directory + 'reference.pdb')
-    reference.save(destination_directory + 'reference.mol2')
-except OSError:
-    print('Check if file exists...')
-target = pmd.load_file(destination_directory + destination_top,
-                       destination_directory + destination_crd)
-try:
-    target.save(destination_directory + 'target.pdb')
-    target.save(destination_directory + 'target.mol2')
-except OSError:
-    print('Check if file exists...')
+    reference = pmd.load_file(source_directory + source_top,
+                            source_directory + source_crd)
+    try:
+        reference.save(destination_directory + 'reference.pdb')
+        reference.save(destination_directory + 'reference.mol2')
+    except OSError:
+        print('Check if file exists...')
+    target = pmd.load_file(destination_directory + destination_top,
+                        destination_directory + destination_crd)
+    try:
+        target.save(destination_directory + 'target.pdb')
+        target.save(destination_directory + 'target.mol2')
+    except OSError:
+        print('Check if file exists...')
 
-reference_mol = load_mol2(destination_directory + 'reference.mol2')
-target_mol = load_mol2(destination_directory + 'target.mol2')
+    reference_mol = load_mol2(destination_directory + 'reference.mol2')
+    target_mol = load_mol2(destination_directory + 'target.mol2')
 
-atom_mapping = map_atoms(reference_mol, target_mol)
+    atom_mapping = map_atoms(reference_mol, target_mol)
 
-reference_mol = load_pdb(destination_directory + 'reference.pdb')
-target_mol = load_pdb(destination_directory + 'target.pdb')
+    reference_mol = load_pdb(destination_directory + 'reference.pdb')
+    target_mol = load_pdb(destination_directory + 'target.pdb')
 
-residue_mapping = map_residues(atom_mapping, reference_mol, target_mol)
+    residue_mapping = map_residues(atom_mapping, reference_mol, target_mol)
 
-for file in ['mini.in', 'therm1.in', 'therm2.in', 'eqnpt.in', 'mdin']:
-    rewrite_amber_input_file(
-        reference_input=source_directory + file,
-        target_input=destination_directory + file,
-        reference_to_target_mapping=residue_mapping)
+    for file in ['mini.in', 'therm1.in', 'therm2.in', 'eqnpt.in', 'mdin']:
+        rewrite_amber_input_file(
+            reference_input=source_directory + file,
+            target_input=destination_directory + file,
+            reference_to_target_mapping=residue_mapping)
 
-rewrite_restraints_file(
-    reference_restraints=source_directory + 'disang.rest',
-    target_restraints=destination_directory + 'disang.rest',
-    reference_to_target_mapping=atom_mapping)
+    rewrite_restraints_file(
+        reference_restraints=source_directory + 'disang.rest',
+        target_restraints=destination_directory + 'disang.rest',
+        reference_to_target_mapping=atom_mapping)
 
-copy_box_vectors(
-    input_inpcrd=source_directory + source_crd,
-    output_inpcrd=destination_directory + destination_crd)
+    copy_box_vectors(
+        input_inpcrd=source_directory + source_crd,
+        output_inpcrd=destination_directory + destination_crd)
+
+
+def
