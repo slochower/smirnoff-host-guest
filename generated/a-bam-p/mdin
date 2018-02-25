@@ -1,34 +1,37 @@
 *******************************************************
-*****************************       therm1.in
+*****************************       mdin
 *******************************************************
-Thermalizing, NVT.
+Production 5.00 ns, NPT.
  &cntrl
   imin = 0,
-  ntx = 1,
-  irest = 0,
-  ntpr = 500,
-  ntwr = 500,
-  ntwx = 0,
+  ntx = 5,
+  irest = 1,
+  ntpr = 1250000,
+  ntwr = 1250000,
+  ntwe = 250,
+  ntxo = 2,
+  ntwx = 500,
+  ntwprt = 146,
   ioutfm = 1,
   iwrap = 1,
   ntf = 2,
   ntc = 2,
   cut = 9.0,
   ntt = 3,
-  tempi = 10.0,
-  temp0 = 10.0,
+  temp0 = 298.15,
   gamma_ln = 1.0,
   ig = -1,
-  ntp = 0,
-  nstlim = 500,
+  ntp = 1,
+  barostat = 2,
+  nstlim = 1250000,
   dt = 0.002,
   ntr = 1,
   restraint_wt = 50.0,
-  restraintmask = ':8-10 | :7@C4 | :7@N1',
+  restraintmask = ':8-10',
   nmropt = 1,
   pencut = -1,
  /
  &wt type = 'END', /
 DISANG=disang.rest
 LISTOUT=POUT
-  
+
