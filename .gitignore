@@ -106,3 +106,5 @@ ENV/
 generated/a-bam-p/*.rst
 generated/a-bam-p/*.out
 generated/a-bam-p/traj*
+generated/a-bam-p/mdinfo*
+generated/a-bam-p/mden*
