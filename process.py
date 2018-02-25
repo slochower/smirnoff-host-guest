@@ -1,5 +1,6 @@
 import numpy as np
 import subprocess as sp
+import os as os
 
 from openeye.oechem import *
 from openforcefield.typing.engines.smirnoff import *
@@ -19,14 +20,14 @@ from utils import rewrite_restraints_file, rewrite_amber_input_file
 from utils import color_restraints
 
 
-def process_directory(source_directory='original/',
-                      source_crd='full.crds',
-                      source_top='full.topo',
-                      destination_directory='generated/',
-                      destination_crd='smirnoff.inpcrd',
-                      destination_top='smirnoff.prmtop',
-                      host_resname='MGO',
-                      guest_resname='BAM'):
+def convert_parameters(source_directory='original/',
+                       source_crd='full.crds',
+                       source_top='full.topo',
+                       destination_directory='generated/',
+                       destination_crd='smirnoff.inpcrd',
+                       destination_top='smirnoff.prmtop',
+                       host_resname='MGO',
+                       guest_resname='BAM'):
 
     create_pdb_with_conect(
         solvated_pdb=source_directory + source_crd,
@@ -58,7 +59,7 @@ def process_directory(source_directory='original/',
         name=host_resname,
         add_tripos=True)
     guest = load_mol2(
-        filename=destination_directory + guest_resname + '.mol2',
+        filename=source_directory + guest_resname.lower() + '.mol2',
         name=guest_resname,
         add_tripos=False)
     check_unique_atom_names(host)
@@ -107,6 +108,7 @@ def process_directory(source_directory='original/',
         xyz=destination_directory + 'water_ions.inpcrd')
 
     merged = mergeStructure(hg_structure, water_and_ions)
+
     try:
         merged.save(destination_directory + destination_top)
     except:
@@ -116,16 +118,15 @@ def process_directory(source_directory='original/',
     except:
         print('Check if solvated coordinate file already exists...')
 
-
     reference = pmd.load_file(source_directory + source_top,
-                            source_directory + source_crd)
+                              source_directory + source_crd)
     try:
         reference.save(destination_directory + 'reference.pdb')
         reference.save(destination_directory + 'reference.mol2')
     except OSError:
         print('Check if file exists...')
     target = pmd.load_file(destination_directory + destination_top,
-                        destination_directory + destination_crd)
+                           destination_directory + destination_crd)
     try:
         target.save(destination_directory + 'target.pdb')
         target.save(destination_directory + 'target.mol2')
@@ -146,16 +147,24 @@ def process_directory(source_directory='original/',
         rewrite_amber_input_file(
             reference_input=source_directory + file,
             target_input=destination_directory + file,
-            reference_to_target_mapping=residue_mapping)
+            reference_to_target_mapping=residue_mapping,
+            dt_override=True)
 
     rewrite_restraints_file(
         reference_restraints=source_directory + 'disang.rest',
         target_restraints=destination_directory + 'disang.rest',
         reference_to_target_mapping=atom_mapping)
 
-    copy_box_vectors(
-        input_inpcrd=source_directory + source_crd,
-        output_inpcrd=destination_directory + destination_crd)
+    # copy_box_vectors(
+    #     input_inpcrd=source_directory + source_crd,
+    #     output_inpcrd=destination_directory + destination_crd)
 
-
-def
+    # For some reason, this must come last, otherwise it gets removed again
+    merged.box = reference.box
+    try:
+        os.remove(destination_directory + destination_top)
+        os.remove(destination_directory + destination_crd)
+    except OSError:
+        pass
+    merged.save(destination_directory + destination_crd)
+    merged.save(destination_directory + destination_top)

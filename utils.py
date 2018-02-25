@@ -33,11 +33,13 @@ def load_mol2(filename, name=None, add_tripos=True, flavor='FF'):
     if flavor is not None:
         flavor = OEIFlavor_MOL2_Forcefield
         ifs.SetFlavor(OEFormat_MOL2, flavor)
-
     molecules = []
+  
     if not ifs.open(filename):
         print(f'Unable to open {filename} for reading...')
+
     for mol in ifs.GetOEMols():
+        print(mol)
         if add_tripos:
             OETriposAtomNames(mol)
         if name:
@@ -144,6 +146,16 @@ def convert_mol2_to_sybyl_antechamber(input_mol2, output_mol2, ac_doctor=False, 
         output, error = p.communicate()
     if p.returncode == 0:
         print('MOL2 file written by antechamber.')
+        # Cleanup after `antechamber`
+        for temp in ['ANTECHAMBER_AC.AC',
+            'ANTECHAMBER_AC.AC0',
+            'ANTECHAMBER_BOND_TYPE.AC',
+            'ANTECHAMBER_BOND_TYPE.AC0',
+            'ATOMTYPE.INF']:
+            try:
+                os.remove(temp)
+            except OSError:
+                pass
     elif p.returncode == 1:
         print('Error returned by antechamber.')
         print(f'Output: {output}')
@@ -1083,9 +1095,25 @@ def rewrite_restraints_file(reference_restraints,
             my_disang.write(new_line)
 
 
+def reparition_hydrogen_mass(prmtop):
+    """
+    Use ParmEd to repartition hydrogen mass.
+    # https://parmed.github.io/ParmEd/html/parmed.html
+    
+    Parameters:
+    ----------
+    prmtop : pmd.amber.AmberParm
+        Existing parameter set
+    """
+
+    action = pmd.tools.HMassRepartition(prmtop)
+    action.execute()
+    
+
 def rewrite_amber_input_file(reference_input,
                              target_input,
                              reference_to_target_mapping,
+                             dt_override=False,
                              path='./'):
     """
     Rewrite an existing AMBER simulation input file using the *residue* mapping between the two structures. Only the positional restraints, specified by `restraintmask` are rewritten.
@@ -1098,6 +1126,8 @@ def rewrite_amber_input_file(reference_input,
         File name of target restraints file
     reference_to_target_mapping : dict
         The dictionary containing the mapping between residues in the reference and target molecules
+    dt_override : bool
+        Whether to rewrite the time step line with `dt = 0.002`
     """
 
     # First, read the existing file...
@@ -1112,6 +1142,8 @@ def rewrite_amber_input_file(reference_input,
             if 'restraintmask' in line:
                 restraint_mask = line.split()[2:]
                 restraint_mask_line = line_number
+            elif dt_override and 'dt' in line:
+                lines[line_number] = '  dt = 0.002,\n'
             else:
                 pass
 
