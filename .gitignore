@@ -101,3 +101,8 @@ ENV/
 .mypy_cache/
 
 *.idea
+
+# Simulation files
+generated/a-bam-p/*.rst
+generated/a-bam-p/*.out
+generated/a-bam-p/traj*
