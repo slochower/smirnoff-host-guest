@@ -39,7 +39,6 @@ def load_mol2(filename, name=None, add_tripos=True, flavor='FF'):
         print(f'Unable to open {filename} for reading...')
 
     for mol in ifs.GetOEMols():
-        print(mol)
         if add_tripos:
             OETriposAtomNames(mol)
         if name:
