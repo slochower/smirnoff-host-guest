@@ -27,7 +27,9 @@ def convert_parameters(source_directory='original/',
                        destination_crd='smirnoff.inpcrd',
                        destination_top='smirnoff.prmtop',
                        host_resname='MGO',
-                       guest_resname='BAM'):
+                       guest_resname='BAM',
+                       atom_mapping=None,
+                       residue_mapping=None):
 
     create_pdb_with_conect(
         solvated_pdb=source_directory + source_crd,
@@ -132,32 +134,30 @@ def convert_parameters(source_directory='original/',
         target.save(destination_directory + 'target.mol2')
     except OSError:
         print('Check if file exists...')
+    
+    if not atom_mapping:
+        reference_mol = load_mol2(destination_directory + 'reference.mol2')
+        target_mol = load_mol2(destination_directory + 'target.mol2')
 
-    reference_mol = load_mol2(destination_directory + 'reference.mol2')
-    target_mol = load_mol2(destination_directory + 'target.mol2')
+        atom_mapping = map_atoms(reference_mol, target_mol)
 
-    atom_mapping = map_atoms(reference_mol, target_mol)
-
-    reference_mol = load_pdb(destination_directory + 'reference.pdb')
-    target_mol = load_pdb(destination_directory + 'target.pdb')
-
-    residue_mapping = map_residues(atom_mapping, reference_mol, target_mol)
+    if not residue_mapping:
+        reference_mol = load_pdb(destination_directory + 'reference.pdb')
+        target_mol = load_pdb(destination_directory + 'target.pdb')
+        residue_mapping = map_residues(atom_mapping, reference_mol, target_mol)
 
     for file in ['mini.in', 'therm1.in', 'therm2.in', 'eqnpt.in', 'mdin']:
         rewrite_amber_input_file(
             reference_input=source_directory + file,
             target_input=destination_directory + file,
             reference_to_target_mapping=residue_mapping,
-            dt_override=True)
+            dt_override=False,
+            target_prmtop=merged)
 
     rewrite_restraints_file(
         reference_restraints=source_directory + 'disang.rest',
         target_restraints=destination_directory + 'disang.rest',
         reference_to_target_mapping=atom_mapping)
-
-    # copy_box_vectors(
-    #     input_inpcrd=source_directory + source_crd,
-    #     output_inpcrd=destination_directory + destination_crd)
 
     # For some reason, this must come last, otherwise it gets removed again
     merged.box = reference.box
@@ -168,3 +168,5 @@ def convert_parameters(source_directory='original/',
         pass
     merged.save(destination_directory + destination_crd)
     merged.save(destination_directory + destination_top)
+    
+    return atom_mapping, residue_mapping

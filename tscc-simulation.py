@@ -42,8 +42,8 @@ class simulation():
         # 'tscc' where it gets set automatically, or None
         self.cuda_visible_devices = 'tscc'
         # Minimization parameters
-        self.minimization_cycles = 20000  # maximum minimization cycles
-        self.minimization_switch = 5  # switch to CG from SD after $ cycles
+        self.minimization_cycles = 50000  # maximum minimization cycles
+        self.minimization_switch = 5000  # switch to CG from SD after $ cycles
         self.minimization_p_restraints = ':8-10 | :7@C4 | :7@N1'  # mask for positional restraints
         self.minimization_p_weight = 50.0  # positional restraint weight (kcal/mol-A**2)
         # Thermalization parameters
@@ -103,13 +103,14 @@ class simulation():
             with open(self.minimization_prefix + '.out', 'r') as f:
                 for line in f:
                     if re.search("TIMING", line):
-                        sys.exit(
-                            'Minimization exists and it looks correct. Aborting.'
-                        )
+                        print(
+                            'Minimization exists and it looks correct.'
+                        , file=self.log)
         print(
             '{:<25} {:<10}'.format('Initializing', self.now()), file=self.log)
         # Craft the input file
-        string = '''
+        if not self.minimization_p_restraints:
+            string = '''
 Minimizing.
  &cntrl
   imin = 1,         ! minimize
@@ -129,6 +130,8 @@ Minimizing.
         mini = open(self.minimization_prefix + '.in', 'w')
         mini.write(string)
         mini.close()
+        else:
+            print('Write minimization input file with restraints here!')
         # Form the command
         command = '{} -O -p {} -ref {} -c {} -i {} -o {} -r {} -inf /dev/null'.format(
             self.minimization_engine, self.system_name + '.prmtop',

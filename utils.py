@@ -1113,6 +1113,7 @@ def rewrite_amber_input_file(reference_input,
                              target_input,
                              reference_to_target_mapping,
                              dt_override=False,
+                             target_prmtop=None,
                              path='./'):
     """
     Rewrite an existing AMBER simulation input file using the *residue* mapping between the two structures. Only the positional restraints, specified by `restraintmask` are rewritten.
@@ -1127,6 +1128,8 @@ def rewrite_amber_input_file(reference_input,
         The dictionary containing the mapping between residues in the reference and target molecules
     dt_override : bool
         Whether to rewrite the time step line with `dt = 0.002`
+    target_prmtop : pmd.structure
+        ParmEd structured used to repartition hydrogen masses if `dt = 0.004` is requested
     """
 
     # First, read the existing file...
@@ -1143,6 +1146,10 @@ def rewrite_amber_input_file(reference_input,
                 restraint_mask_line = line_number
             elif dt_override and 'dt' in line:
                 lines[line_number] = '  dt = 0.002,\n'
+            elif not dt_override and 'dt = 0.004' in line:
+                # This is probably not the right place to do this, because it is repeated multiple times in the conversion loop!
+                print('Hydrogen mass repartitioning...')
+                reparition_hydrogen_mass(target_prmtop)
             else:
                 pass
 
