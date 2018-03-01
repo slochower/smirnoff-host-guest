@@ -1,23 +1,18 @@
-import numpy as np
-import subprocess as sp
+import logging as logging
 import os as os
 
-from openeye.oechem import *
-from openforcefield.typing.engines.smirnoff import *
-from openforcefield.utils import mergeStructure
 import parmed as pmd
+from openforcefield.typing.engines.smirnoff import ForceField, unit
+from openforcefield.utils import mergeStructure
 
-from utils import create_pdb_with_conect, prune_conect
-from utils import split_topology, create_host_guest_topology
-from utils import create_host_mol2, convert_mol2_to_sybyl_antechamber
-from utils import load_mol2, check_unique_atom_names, load_pdb
-from utils import extract_water_and_ions, create_water_and_ions_parameters
 from utils import check_bond_lengths
-from utils import extract_dummy_atoms, create_dummy_atom_parameters
+from utils import create_host_mol2, convert_mol2_to_sybyl_antechamber
+from utils import create_pdb_with_conect, prune_conect
+from utils import extract_water_and_ions, create_water_and_ions_parameters
+from utils import load_mol2, check_unique_atom_names, load_pdb
 from utils import map_residues, map_atoms
-from utils import copy_box_vectors
 from utils import rewrite_restraints_file, rewrite_amber_input_file
-from utils import color_restraints
+from utils import split_topology, create_host_guest_topology
 
 
 def convert_parameters(source_directory='original/',
@@ -83,12 +78,14 @@ def convert_parameters(source_directory='original/',
     try:
         hg_structure.save(destination_directory + 'hg.prmtop')
     except OSError:
-        print('Check if the host-guest parameter file already exists...')
+        logging.warning(
+            'Check if the host-guest parameter file already exists...')
 
     try:
         hg_structure.save(destination_directory + 'hg.inpcrd')
     except OSError:
-        print('Check if the host-guest coordinate file already exists...')
+        logging.warning(
+            'Check if the host-guest coordinate file already exists...')
 
     extract_water_and_ions(
         amber_prmtop=source_directory + source_top,
@@ -114,11 +111,11 @@ def convert_parameters(source_directory='original/',
     try:
         merged.save(destination_directory + destination_top)
     except:
-        print('Check if solvated parameter file already exists...')
+        logging.warning('Check if solvated parameter file already exists...')
     try:
         merged.save(destination_directory + destination_crd)
     except:
-        print('Check if solvated coordinate file already exists...')
+        logging.warning('Check if solvated coordinate file already exists...')
 
     reference = pmd.load_file(source_directory + source_top,
                               source_directory + source_crd)
@@ -126,15 +123,15 @@ def convert_parameters(source_directory='original/',
         reference.save(destination_directory + 'reference.pdb')
         reference.save(destination_directory + 'reference.mol2')
     except OSError:
-        print('Check if file exists...')
+        logging.warning('Check if file exists...')
     target = pmd.load_file(destination_directory + destination_top,
                            destination_directory + destination_crd)
     try:
         target.save(destination_directory + 'target.pdb')
         target.save(destination_directory + 'target.mol2')
     except OSError:
-        print('Check if file exists...')
-    
+        logging.warning('Check if file exists...')
+
     if not atom_mapping:
         reference_mol = load_mol2(destination_directory + 'reference.mol2')
         target_mol = load_mol2(destination_directory + 'target.mol2')
@@ -168,5 +165,5 @@ def convert_parameters(source_directory='original/',
         pass
     merged.save(destination_directory + destination_crd)
     merged.save(destination_directory + destination_top)
-    
+
     return atom_mapping, residue_mapping

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+source $AMBERHOME/amber.sh
+
+        antechamber -i ./tests/cb7-1/MOL.mol2 -fi mol2 -o ./tests/cb7-1/MOL-sybyl.mol2 -fo mol2 -at sybyl
+        

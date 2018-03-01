@@ -1,0 +1,5 @@
+
+    parm ./tests/cb7-1/cb7-1.prmtop
+    trajin ./tests/cb7-1/cb7-1.rst7
+    trajout ./tests/cb7-1/cb7-1.pdb conect
+    

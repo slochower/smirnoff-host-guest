@@ -29,7 +29,7 @@ class simulation():
         self.thermalization_prefix = 'therm'
         self.equilibration_prefix = 'eqnpt'
         self.production_prefix = 'traj'
-        self.nmr_restraints_file = 'disange.rest'
+        self.nmr_restraints_file = 'disang.rest'
         self.log_file = 'full-HMR'
         self.log = None  # this is necessary before we open the file for writing later
         # MD engines
@@ -104,8 +104,8 @@ class simulation():
                 for line in f:
                     if re.search("TIMING", line):
                         print(
-                            'Minimization exists and it looks correct.'
-                        , file=self.log)
+                            'Minimization exists and it looks correct.',
+                            file=self.log)
         print(
             '{:<25} {:<10}'.format('Initializing', self.now()), file=self.log)
         # Craft the input file
@@ -127,11 +127,11 @@ Minimizing.
  /
 
 '''.format(self.minimization_cycles, self.minimization_switch)
-        mini = open(self.minimization_prefix + '.in', 'w')
-        mini.write(string)
-        mini.close()
+            mini = open(self.minimization_prefix + '.in', 'w')
+            mini.write(string)
+            mini.close()
         else:
-            print('Write minimization input file with restraints here!')
+            print('Write minimization input file with restraints here!ll')
         # Form the command
         command = '{} -O -p {} -ref {} -c {} -i {} -o {} -r {} -inf /dev/null'.format(
             self.minimization_engine, self.system_name + '.prmtop',

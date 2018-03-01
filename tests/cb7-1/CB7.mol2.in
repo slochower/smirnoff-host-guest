@@ -1,0 +1,5 @@
+
+    parm ./tests/cb7-1/cb7-1.prmtop
+    trajin ./tests/cb7-1/cb7-1.pruned.pdb
+    mask ":CB7" maskmol2 ./tests/cb7-1/CB7.mol2
+    

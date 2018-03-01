@@ -1,0 +1,67 @@
+
+CPPTRAJ: Trajectory Analysis. V17.00
+    ___  ___  ___  ___
+     | \/ | \/ | \/ | 
+    _|_/\_|_/\_|_/\_|_
+
+| Date/time: 02/28/18 21:10:03
+| Available memory: 1.133 GB
+
+INPUT: Reading input from './tests/cb7-1/water_ions.pdb.in'
+  [parm ./tests/cb7-1/cb7-1.prmtop]
+	Reading './tests/cb7-1/cb7-1.prmtop' as Amber Topology
+	Radius Set: modified Bondi radii (mbondi)
+  [trajin ./tests/cb7-1/cb7-1.rst7]
+	Reading './tests/cb7-1/cb7-1.rst7' as Amber Restart
+  [strip :CB7]
+    STRIP: Stripping atoms in mask [:CB7]
+  [strip :MOL]
+    STRIP: Stripping atoms in mask [:MOL]
+  [trajout ./tests/cb7-1/water_ions.pdb]
+	Writing './tests/cb7-1/water_ions.pdb' as PDB
+---------- RUN BEGIN -------------------------------------------------
+
+PARAMETER FILES (1 total):
+ 0: cb7-1.prmtop, 4662 atoms, 1503 res, box: Orthogonal, 1503 mol, 1500 solvent
+
+INPUT TRAJECTORIES (1 total):
+ 0: 'cb7-1.rst7' is an AMBER restart file with velocity info, Parm cb7-1.prmtop (Orthogonal box) (reading 1 of 1)
+  Coordinate processing will occur on 1 frames.
+
+OUTPUT TRAJECTORIES (1 total):
+  'water_ions.pdb' (1 frames) is a PDB file
+
+BEGIN TRAJECTORY PROCESSING:
+.....................................................
+ACTION SETUP FOR PARM 'cb7-1.prmtop' (2 actions):
+  0: [strip :CB7]
+	Stripping 126 atoms.
+	Stripped topology: 4536 atoms, 1502 res, box: Orthogonal, 1502 mol, 1500 solvent
+  1: [strip :MOL]
+	Stripping 35 atoms.
+	Stripped topology: 4501 atoms, 1501 res, box: Orthogonal, 1501 mol, 1500 solvent
+Warning: No PDB space group specified.
+----- cb7-1.rst7 (1-1, 1) -----
+100% Complete.
+
+Read 1 frames and processed 1 frames.
+TIME: Avg. throughput= 35.1778 frames / second.
+
+ACTION OUTPUT:
+
+RUN TIMING:
+TIME:		Init               : 0.0000 s (  0.04%)
+TIME:		Trajectory Process : 0.0284 s ( 97.36%)
+TIME:		Action Post        : 0.0000 s (  0.00%)
+TIME:		Analysis           : 0.0000 s (  0.00%)
+TIME:		Data File Write    : 0.0000 s (  0.00%)
+TIME:		Other              : 0.0008 s (  0.03%)
+TIME:	Run Total 0.0292 s
+---------- RUN END ---------------------------------------------------
+TIME: Total execution time: 0.0403 seconds.
+--------------------------------------------------------------------------------
+To cite CPPTRAJ use:
+Daniel R. Roe and Thomas E. Cheatham, III, "PTRAJ and CPPTRAJ: Software for
+  Processing and Analysis of Molecular Dynamics Trajectory Data". J. Chem.
+  Theory Comput., 2013, 9 (7), pp 3084-3095.
+
