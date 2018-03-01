@@ -101,6 +101,7 @@ ENV/
 .mypy_cache/
 
 *.idea
+*.vscode
 
 # Simulation files
 generated/a-bam-p/*.rst
