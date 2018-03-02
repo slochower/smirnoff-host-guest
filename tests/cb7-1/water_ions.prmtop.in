@@ -4,8 +4,6 @@
         source leaprc.gaff
         loadamberparams frcmod.tip3p
         loadamberparams frcmod.ionsjc_tip3p
-        loadamberparams frcmod.dum
-        DUM = loadmol2 dum.mol2
         mol = loadpdb water_ions.pdb
         saveamberparm mol water_ions.prmtop water_ions.inpcrd
         quit

@@ -1,7 +1,7 @@
 
-parm ./tests/cb7-1/cb7-1.prmtop
-trajin ./tests/cb7-1/cb7-1.rst7
+parm cb7-1.prmtop
+trajin cb7-1.rst7
 strip :CB7
 strip :MOL
-trajout ./tests/cb7-1/water_ions.pdb
+trajout water_ions.pdb
             

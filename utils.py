@@ -257,7 +257,7 @@ def create_pdb_with_conect(solvated_pdb, amber_prmtop, output_pdb, path='./'):
     path : str
         Directory for input and output files
     """
-    logging.info(f'Creating {solvated_pdb} with CONECT records...')
+    logging.info(f'Creating {output_pdb} with CONECT records...')
     cpptraj = \
         f'''
     parm {amber_prmtop}
@@ -408,7 +408,7 @@ def extract_water_and_ions(amber_prmtop,
     output_pdb : str
         Output PDB file name
     dummy_atoms : bool or str
-        If `True`, include dummy atoms with water and ions; otherwise, strip the dummy atoms specified by the residue name 
+        If `True`, include dummy atoms with water and ions (i.e., don't strip them); otherwise, strip the dummy atoms specified by the residue name.
     path : str
         Directory for input and output files
     """
@@ -582,15 +582,11 @@ def create_water_and_ions_parameters(input_pdb,
     with open(path + tleap_script, 'w') as file:
         file.write('#!/usr/bin/env bash\n')
         file.write('source $AMBERHOME/amber.sh\n')
-        file.write(f'tleap -f {tleap_input} > leap.log\n')
-        file.write('sleep 1\n')
+        file.write(f'tleap -f {tleap_input} && sleep 1\n')
         file.write(f'mv leap.log {tleap_output}')
     with open(path + tleap_output, 'w') as file:
         p = sp.Popen(
-            ['bash', tleap_output],
-            cwd=path,
-            stdout=file,
-            stderr=file)
+            ['bash', tleap_script], cwd=path, stdout=file, stderr=file)
         output, error = p.communicate()
     if p.returncode == 0:
         logging.debug(

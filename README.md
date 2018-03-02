@@ -55,20 +55,20 @@ It is also worth noting that upcoming changes to [`Topology`](https://github.com
 
 ## Manifest
 
-- `build/`: Contains a `conda` environment file
+- `build/`: Contains a `conda` environment file used for the notebooks
 - `tests/`: Directory for test case input and output
 - `01-convert-benchmarkset.ipynb`: Example notebook #1 (see above)
 - `02-convert-APR-files.ipynb`: Example notebook #2 (see above)
 - `utils.py`: Helper functions used in the notebooks, with a few extras
 
 ## Execution
-Running the notebook `01-convert-benchmarkset.ipynb` will download the input files from GitHub, switch parameters, and write the files `smirnoff.prmtop` and `smirnoff.inpcrd` in `test/cb7-1/`. Running the notebook `02-convert-APR-files.ipynb` will read files from `test/a-bam-p/original/`, switch the parameters, and write the files `smirnoff.prmtop` and `smirnoff.inpcrd` in `test/a-bam-p/generated/`
+Running the notebook `01-convert-benchmarkset.ipynb` will download the input files from GitHub, switch parameters, and write the files `smirnoff.prmtop` and `smirnoff.inpcrd` in `test/cb7-1/`. Running the notebook `02-convert-APR-files.ipynb` will read files from `test/a-bam-p/original/`, switch the parameters, and write the files `smirnoff.prmtop` and `smirnoff.inpcrd` in `test/a-bam-p/generated/`.
 
 For new systems, there should be just a few places where configuration might be required:
 
 - When using `antechamber` to write a `mol2` with SYBYL atom types, `acdoctor` may have to be [disabled](http://archive.ambermd.org/201705/0020.html) for carboxylates or other resonance structures. This is an option to `utils.convert_mol2_to_sybyl_antechamber()`
-- Figuring out whethere there are dummy atoms
-- Determining whether atom or residue mapping is necessary. (This process is slow, because it runs on the fully solvated system. We can't run atom mapping earlier because the atom mapping changes *after* combining the two ParmEd structures.)
+- When extracting the water and ions, the option `dummy_atoms=True` may be misleading. I've added explanatory text in the notebooks.
+- Determining whether atom or residue mapping is necessary. (This process is slow, because it runs on the fully solvated system. We can't run atom mapping earlier because the atom mapping changes *after* combining the two ParmEd structures.) This is shown in the second example notebook.
 
 ### Setup
 I used a custom `conda` environment to test the workflow and fix the version of `openforcefield`. The environment can be installed by running `conda env create -f build/environment.yaml`.  Note that this will install the OpenEye toolkit and requires a separate `pip` repository. For reasons that are unclear to me, 
