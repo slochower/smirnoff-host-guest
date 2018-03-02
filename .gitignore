@@ -103,16 +103,6 @@ ENV/
 *.idea
 *.vscode
 
-# Simulation files
-generated/a-bam-p/*.rst
-generated/a-bam-p/*.out
-generated/a-bam-p/traj*
-generated/a-bam-p/mdinfo*
-generated/a-bam-p/mden*
-
-# Prototype testing directory
-a-bam-p/
-
 # Remove generated files
 tests/a-bam-p/generated/*
 tests/cb7-1/*
