@@ -71,8 +71,8 @@ For new systems, there should be just a few places where configuration might be 
 - Determining whether atom or residue mapping is necessary. (This process is slow, because it runs on the fully solvated system. We can't run atom mapping earlier because the atom mapping changes *after* combining the two ParmEd structures.) This is shown in the second example notebook.
 
 ### Setup
-I used a custom `conda` environment to test the workflow and fix the version of `openforcefield`. The environment can be installed by running `conda env create -f build/environment.yaml`.  Note that this will install the OpenEye toolkit and requires a separate `pip` repository. For reasons that are unclear to me, 
+I used a custom `conda` environment to test the workflow and fix the version of `openforcefield`. The environment can be installed by running `conda env create -f build/environment.yaml`.  Note that this will install the OpenEye toolkit and requires a separate `pip` repository.
 
 Run the `jupyter notebook`s after activating the environment with `source activate smirnoff-host-guest`.
 ### Assumptions
-These tools rely on AmberTools (`tleap` and `cpptraj`) to do some intermediate conversions and it is assumed the environmental variable `$AMBERHOME` is defined. This can be changed in `utils.py`. The scripts also heavily leverage OpenEye tools.
+These tools rely on AmberTools (`tleap` and `cpptraj`) to do some intermediate conversions and it is assumed the environmental variable `$AMBERHOME` is defined. This can be changed in `utils.py`. The scripts also heavily leverage OpenEye tools. I also have some boilerplate for the intermediate file conversions in `utils.py`, to minimize configuration fussing, that can be changed (e.g., water model).
