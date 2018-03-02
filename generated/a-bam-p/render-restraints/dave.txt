@@ -1,3 +1,0 @@
-amber
-../solvated_smirnoff.prmtop
-../solvated_smirnoff.inpcrd
