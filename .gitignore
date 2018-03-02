@@ -112,3 +112,7 @@ generated/a-bam-p/mden*
 
 # Prototype testing directory
 a-bam-p/
+
+# Remove generated files
+tests/a-bam-p/generated/*
+tests/cb7-1/*
