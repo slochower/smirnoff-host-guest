@@ -1,0 +1,28 @@
+name: smirnoff-host-guest
+channels:
+  - anaconda
+  - bioconda
+  - conda-forge
+  - omnia
+dependencies:
+  - anaconda::numpy=1.13.3
+  - anaconda::scipy=1.0.0
+  - anaconda::matplotlib=2.0.2
+  - anaconda::ipykernel=4.8.0
+  - anaconda::networkx=1.11
+  - anaconda::lxml=3.8.0
+  - anaconda::pylint
+  - anaconda::pip
+  - bioconda::nglview=1.0
+  - omnia::parmed==2.7.3
+  - omnia::openmm=7.1.1
+  - omnia::openmoltools=0.8.1
+  - pip:
+    - yapf
+    - git+https://github.com/open-forcefield-group/openforcefield@548f04d005a51c03b40f1b4fa0ec32b80ae10775
+    # To install the OpenEye toolkit, add:
+    # [global]
+    # extra-index-url = https://pypi.anaconda.org/OpenEye/simple
+    # to ~/.pip/pip.conf (according to their support)
+    - https://pypi.anaconda.org/openeye/simple/openeye-toolkits-python3-redhat-7-x64/2015.10.1/OpenEye-toolkits-python3-redhat-7-x64-2015.10.1.tar.gz
+    - https://pypi.anaconda.org/openeye/label/beta/simple/openeye-oenotebook/0.8.1/OpenEye-oenotebook-0.8.1.tar.gz
