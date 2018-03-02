@@ -36,7 +36,7 @@ The included notebooks run through this workflow with two examples. First, a hos
 
 A few notes on things that didn't work in my testing. Many of these things might be able to work if applied in a different context or even in a different order -- and I don't want to claim they are broken -- only that these paths led to errors one way or another, in my hands. Some of the issues may be due to my unfamiliarity with the tools, but by listing them here, someone else might avoid a few pitfalls.
 
-- Read a `mol2` file with GAFF atom types into an OpenEye `OEMol` without using `OEIFlavor_MOL2_Forcefield`. This is a huge caveat. Ignoring it can lead to [oxygen being interpreted as osmium silently](https://github.com/openforcefield/smirnoff99Frosst/issues/73), leading to incorrect parameter assignment. When wildcard assignments are eliminated, this will probably be more obvious.
+- Read a `mol2` file with GAFF atom types into an OpenEye `OEMol` without using `OEIFlavor_MOL2_Forcefield`. This can be a big deal. Ignoring it can lead to [oxygen being interpreted as osmium silently](https://github.com/openforcefield/smirnoff99Frosst/issues/73), leading to incorrect parameter assignment. When wildcard assignments are eliminated, this will probably be more obvious.
 - Go straight from a `prmtop` to an OpenEye `OEMol` via an OpenMM topology. This requires inferring bond orders (mentioned [here](https://github.com/openforcefield/openforcefield/issues/66#issuecomment-337696319)), which has not always worked reliably.
 - Start from a `mol2` file containing host (or guest) together with water and ions. There can be unexpected results when the "Forcefield" flavor is required to parse the host (or guest). But more importantly, there is an explosion of file size when writing out a subsequent `prmtop` file, mentioned [here](https://github.com/ParmEd/ParmEd/issues/930#issuecomment-363321848).
 - Try to run `createSystem` when all atoms are not unique. It's best to always run `OETriposAtomNames` to generate unique atom names. See [this](https://github.com/MobleyLab/benchmarksets/issues/64#issuecomment-349771286) issue for more information; a multi-model `mol2` seems to be troublesome, since by definition, there are non-unique atom names.
@@ -71,7 +71,7 @@ For new systems, there should be just a few places where configuration might be 
 - Determining whether atom or residue mapping is necessary. (This process is slow, because it runs on the fully solvated system. We can't run atom mapping earlier because the atom mapping changes *after* combining the two ParmEd structures.) This is shown in the second example notebook.
 
 ### Setup
-I used a custom `conda` environment to test the workflow and fix the version of `openforcefield`. The environment can be installed by running `conda env create -f build/environment.yaml`.  Note that this will install the OpenEye toolkit and requires a separate `pip` repository.
+I used a custom `conda` environment to test the workflow and fix the version of `openforcefield`. The environment can be installed by running `conda env create -f build/environment.yaml python=3.6`.  Note that this will install the OpenEye toolkit and requires a separate `pip` repository.
 
 Run the `jupyter notebook`s after activating the environment with `source activate smirnoff-host-guest`.
 ### Assumptions
