@@ -5,6 +5,7 @@ channels:
   - conda-forge
   - omnia
 dependencies:
+  - python=3.6
   - anaconda::numpy=1.13.3
   - anaconda::scipy=1.0.0
   - anaconda::matplotlib=2.0.2
