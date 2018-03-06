@@ -4,8 +4,8 @@ CPPTRAJ: Trajectory Analysis. V17.00
      | \/ | \/ | \/ | 
     _|_/\_|_/\_|_/\_|_
 
-| Date/time: 03/02/18 11:50:20
-| Available memory: 4.589 GB
+| Date/time: 03/06/18 14:37:19
+| Available memory: 2.718 GB
 
 INPUT: Reading input from 'water_ions.pdb.in'
   [parm cb7-1.prmtop]
@@ -45,20 +45,20 @@ Warning: No PDB space group specified.
 100% Complete.
 
 Read 1 frames and processed 1 frames.
-TIME: Avg. throughput= 50.0075 frames / second.
+TIME: Avg. throughput= 34.0090 frames / second.
 
 ACTION OUTPUT:
 
 RUN TIMING:
-TIME:		Init               : 0.0000 s (  0.07%)
-TIME:		Trajectory Process : 0.0200 s ( 97.05%)
+TIME:		Init               : 0.0000 s (  0.05%)
+TIME:		Trajectory Process : 0.0294 s ( 97.09%)
 TIME:		Action Post        : 0.0000 s (  0.00%)
 TIME:		Analysis           : 0.0000 s (  0.00%)
 TIME:		Data File Write    : 0.0000 s (  0.00%)
-TIME:		Other              : 0.0006 s (  0.03%)
-TIME:	Run Total 0.0206 s
+TIME:		Other              : 0.0009 s (  0.03%)
+TIME:	Run Total 0.0303 s
 ---------- RUN END ---------------------------------------------------
-TIME: Total execution time: 0.0317 seconds.
+TIME: Total execution time: 0.0421 seconds.
 --------------------------------------------------------------------------------
 To cite CPPTRAJ use:
 Daniel R. Roe and Thomas E. Cheatham, III, "PTRAJ and CPPTRAJ: Software for

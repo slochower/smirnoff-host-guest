@@ -4,8 +4,8 @@ CPPTRAJ: Trajectory Analysis. V17.00
      | \/ | \/ | \/ | 
     _|_/\_|_/\_|_/\_|_
 
-| Date/time: 03/02/18 11:03:09
-| Available memory: 3.595 GB
+| Date/time: 03/06/18 14:37:19
+| Available memory: 2.738 GB
 
 INPUT: Reading input from './tests/cb7-1/MOL.mol2.in'
   [parm ./tests/cb7-1/cb7-1.prmtop]
@@ -36,20 +36,20 @@ ACTION SETUP FOR PARM 'cb7-1.prmtop' (1 actions):
 100% Complete.
 
 Read 1 frames and processed 1 frames.
-TIME: Avg. throughput= 344.9465 frames / second.
+TIME: Avg. throughput= 348.0682 frames / second.
 
 ACTION OUTPUT:
 
 RUN TIMING:
-TIME:		Init               : 0.0000 s (  0.34%)
-TIME:		Trajectory Process : 0.0029 s ( 99.01%)
+TIME:		Init               : 0.0000 s (  0.38%)
+TIME:		Trajectory Process : 0.0029 s ( 99.00%)
 TIME:		Action Post        : 0.0000 s (  0.00%)
 TIME:		Analysis           : 0.0000 s (  0.00%)
 TIME:		Data File Write    : 0.0000 s (  0.03%)
 TIME:		Other              : 0.0000 s (  0.01%)
 TIME:	Run Total 0.0029 s
 ---------- RUN END ---------------------------------------------------
-TIME: Total execution time: 0.0111 seconds.
+TIME: Total execution time: 0.0110 seconds.
 --------------------------------------------------------------------------------
 To cite CPPTRAJ use:
 Daniel R. Roe and Thomas E. Cheatham, III, "PTRAJ and CPPTRAJ: Software for
