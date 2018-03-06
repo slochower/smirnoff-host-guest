@@ -156,7 +156,7 @@ def convert_mol2_to_sybyl_antechamber(input_mol2,
     antechamber_input = output_mol2 + '.in'
     with open(path + antechamber_input, 'w') as file:
         file.write('#!/usr/bin/env bash\n')
-        file.write('source $AMBERHOME/amber.sh\n')
+        # file.write('source $AMBERHOME/amber.sh\n')
         file.write(antechamber)
     with open(path + antechamber_output, 'w') as file:
         p = sp.Popen(
@@ -581,7 +581,7 @@ def create_water_and_ions_parameters(input_pdb,
         file.write(tleap)
     with open(path + tleap_script, 'w') as file:
         file.write('#!/usr/bin/env bash\n')
-        file.write('source $AMBERHOME/amber.sh\n')
+        # file.write('source $AMBERHOME/amber.sh\n')
         file.write(f'tleap -f {tleap_input} && sleep 1\n')
         file.write(f'mv leap.log {tleap_output}')
     with open(path + tleap_output, 'w') as file:
