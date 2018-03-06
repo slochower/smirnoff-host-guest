@@ -4,6 +4,7 @@ channels:
   - bioconda
   - conda-forge
   - omnia
+  - openeye
 dependencies:
   - python=3.6
   - anaconda::numpy=1.13.3
@@ -18,12 +19,9 @@ dependencies:
   - omnia::parmed==2.7.3
   - omnia::openmm=7.1.1
   - omnia::openmoltools=0.8.1
+  - openeye::openeye-toolkits
+  - pip
   - pip:
     - yapf
     - git+https://github.com/open-forcefield-group/openforcefield@548f04d005a51c03b40f1b4fa0ec32b80ae10775
-    # To install the OpenEye toolkit, add:
-    # [global]
-    # extra-index-url = https://pypi.anaconda.org/OpenEye/simple
-    # to ~/.pip/pip.conf (according to their support)
-    - https://pypi.anaconda.org/openeye/simple/openeye-toolkits-python3-redhat-7-x64/2015.10.1/OpenEye-toolkits-python3-redhat-7-x64-2015.10.1.tar.gz
-    - https://pypi.anaconda.org/openeye/label/beta/simple/openeye-oenotebook/0.8.1/OpenEye-oenotebook-0.8.1.tar.gz
+    - git+https://github.com/slochower/smirnoff-host-guest@3beb0b37f4a5f6eb2849e7c16e53ed7d0498b4b7
