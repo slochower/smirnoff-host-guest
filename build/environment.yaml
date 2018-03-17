@@ -23,5 +23,5 @@ dependencies:
   - pip
   - pip:
     - yapf
-    - git+https://github.com/open-forcefield-group/openforcefield@548f04d005a51c03b40f1b4fa0ec32b80ae10775
-    - git+https://github.com/slochower/smirnoff-host-guest@a12fbc4d82b92f609da362e116564364486aa2eb
+    - git+https://github.com/open-forcefield-group/openforcefield@32ad91a0fc20e167738810392a7d9452d4dda3bc
+    - git+https://github.com/slochower/smirnoff-host-guest@faa55d50778ef9f297640472e4be67fe4d969c61
