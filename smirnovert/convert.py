@@ -4,13 +4,19 @@ Provides a wrapper script to convert a given host-guest system to SMIRNOFF param
 """
 
 from .utils import *
-from openforcefield.typing.engines.smirnoff import ForceField
+from openforcefield.typing.engines.smirnoff import ForceField, unit
 from openforcefield.utils import mergeStructure
 
 import parmed as pmd
 import glob
 
-def convert(destination, prefix, reference_prmtop, reference_inpcrd, host_resname, guest_resname,
+
+def convert(destination,
+            prefix,
+            reference_prmtop,
+            reference_inpcrd,
+            host_resname,
+            guest_resname,
             debug=False):
     """
     Convert from an existing parameter set to SMIRNOFF99Frosst.
@@ -37,21 +43,26 @@ def convert(destination, prefix, reference_prmtop, reference_inpcrd, host_resnam
         A ParmEd structure containing the SMIRNOFF99Frosst parameters and coordinates
     """
 
-    clean_up(destination=destination, host_resname=host_resname, guest_resname=guest_resname)
-    reference = pmd.load_file(destination + reference_prmtop, xyz=destination + reference_inpcrd)
+    clean_up(
+        destination=destination,
+        host_resname=host_resname,
+        guest_resname=guest_resname)
+    reference = pmd.load_file(
+        destination + reference_prmtop, xyz=destination + reference_inpcrd)
 
-    create_pdb_with_conect(solvated_pdb=destination + reference_inpcrd,
-                           amber_prmtop=destination + reference_prmtop,
-                           output_pdb=destination + prefix + '.pdb')
+    create_pdb_with_conect(
+        solvated_pdb=destination + reference_inpcrd,
+        amber_prmtop=destination + reference_prmtop,
+        output_pdb=destination + prefix + '.pdb')
 
-    prune_conect(input_pdb=prefix + '.pdb',
-                 output_pdb=prefix + '.pruned.pdb',
-                 path=destination)
+    prune_conect(
+        input_pdb=prefix + '.pdb',
+        output_pdb=prefix + '.pruned.pdb',
+        path=destination)
 
     components = split_topology(file_name=destination + prefix + '.pruned.pdb')
-    hg_topology = create_host_guest_topology(components,
-                                             host_resname=host_resname,
-                                             guest_resname=guest_resname)
+    hg_topology = create_host_guest_topology(
+        components, host_resname=host_resname, guest_resname=guest_resname)
 
     create_host_mol2(
         solvated_pdb=destination + prefix + '.pruned.pdb',
@@ -120,14 +131,12 @@ def convert(destination, prefix, reference_prmtop, reference_inpcrd, host_resnam
     try:
         hg_structure.save(destination + 'hg.prmtop')
     except OSError:
-        print(
-            'Check if the host-guest parameter file already exists...')
+        print('Check if the host-guest parameter file already exists...')
 
     try:
         hg_structure.save(destination + 'hg.inpcrd')
     except OSError:
-        print(
-            'Check if the host-guest coordinate file already exists...')
+        print('Check if the host-guest coordinate file already exists...')
 
     water_and_ions = pmd.amber.AmberParm(
         destination + 'water_ions.prmtop',
@@ -145,9 +154,13 @@ def convert(destination, prefix, reference_prmtop, reference_inpcrd, host_resnam
         print('Check if solvated coordinate file already exists...')
 
     if not debug:
-        clean_up(destination=destination, host_resname=host_resname, guest_resname=guest_resname)
+        clean_up(
+            destination=destination,
+            host_resname=host_resname,
+            guest_resname=guest_resname)
 
     return merged
+
 
 def clean_up(destination, host_resname, guest_resname):
     """
