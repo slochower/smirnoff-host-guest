@@ -178,9 +178,11 @@ def clean_up(destination, host_resname, guest_resname):
 
     """
     water = glob.glob(destination + 'water_ions*')
+    inpt = glob.glob(desintation + '*.pdb.in')
+    outp = glob.glob(destination + '*.pdb.out')
     host = glob.glob(destination + host_resname + '*')
     guest = glob.glob(destination + guest_resname + '*')
-    for file in water + host + guest:
+    for file in water + host + guest + inpt + outp:
         try:
             print(f'Removing {file}...')
             os.remove(file)

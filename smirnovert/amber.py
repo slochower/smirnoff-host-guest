@@ -63,7 +63,7 @@ def create_mapping(structure, host_resname, guest_resname):
                 # To be completely thorough, we could add a check here that the parameters associated with each
                 # atom type in each residue are identical, but for now I've manually checked this is correct.
                 if atom.element == 1:
-                    host_mapping[atom_index], hydrogen_index = hydrogen_list[hydrogen_index]
+                    host_mapping[atom_index] = hydrogen_list[hydrogen_index]
                     hydrogen_index += 1
                 elif atom.element == 6:
                     host_mapping[atom_index] = carbon_list[carbon_index]
