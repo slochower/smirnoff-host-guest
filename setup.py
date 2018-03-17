@@ -9,7 +9,7 @@ import setuptools
 directory = pathlib.Path(__file__).parent.resolve()
 
 # version
-init_path = directory.joinpath('smirnoff-host-guest', '__init__.py')
+init_path = directory.joinpath('smirnovert', '__init__.py')
 text = init_path.read_text()
 pattern = re.compile(r"^__version__ = ['\"]([^'\"]*)['\"]", re.MULTILINE)
 version = pattern.search(text).group(1)

@@ -55,7 +55,11 @@ def load_mol2(filename, name=None, add_tripos=True, flavor='FF'):
             mol.SetTitle(name)
         # Add all the molecules in this file to a list, but only return the first one.
         molecules.append(OEMol(mol))
-    return molecules[0]
+        # This should now handle single-residue and multi-residue hosts.
+        if len(molecules) > 1:
+            return molecules[0]
+        else:
+            return molecules
 
 
 def save_mol2(molecule, filename):
@@ -1037,7 +1041,7 @@ def create_host_guest_topology(components, host_resname, guest_resname):
         'Creating a combined topology for the host and guest molecules...')
     topology = pmd.Structure()
     for component in components:
-        # Check the first residue of each component becuase there may be multiple residues in each component, but they shoudl all have the same residue name.hash
+        # Check the first residue of each component because there may be multiple residues in each component, but they should all have the same residue name.hash
         if component[0].residues[0].name == host_resname.upper() or \
             component[0].residues[0].name == guest_resname.upper():
             topology += component[0]
