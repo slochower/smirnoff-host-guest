@@ -168,6 +168,7 @@ def clean_up(destination, host_resname, guest_resname):
     guest = glob.glob(destination + guest_resname + '*')
     for file in water + host + guest:
         try:
+            print(f'Removing {file}...')
             os.remove(destination + file)
         except:
             pass

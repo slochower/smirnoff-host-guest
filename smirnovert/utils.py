@@ -56,10 +56,7 @@ def load_mol2(filename, name=None, add_tripos=True, flavor='FF'):
         # Add all the molecules in this file to a list, but only return the first one.
         molecules.append(OEMol(mol))
         # This should now handle single-residue and multi-residue hosts.
-        if len(molecules) > 1:
-            return molecules[0]
-        else:
-            return molecules
+        return molecules[0]
 
 
 def save_mol2(molecule, filename):
