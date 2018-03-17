@@ -9,6 +9,7 @@ from openforcefield.utils import mergeStructure
 
 import parmed as pmd
 import glob
+import os
 
 
 def convert(destination,
