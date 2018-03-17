@@ -116,7 +116,7 @@ def convert(destination,
     check_unique_atom_names(guest)
     molecules = [host, guest]
 
-    ff = ForceField('forcefield/smirnoff99Frosst.ffxml')
+    ff = ForceField('forcefield/smirnoff99Frosst.offxml')
     system = ff.createSystem(
         hg_topology.topology,
         molecules,
