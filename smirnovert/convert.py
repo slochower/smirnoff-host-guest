@@ -80,14 +80,14 @@ def convert(
     create_host_mol2(
         solvated_pdb=os.path.join(destination, prefix) + ".pruned.pdb",
         amber_prmtop=os.path.join(source, reference_prmtop),
-        mask=host_resname,
+        mask=host_resname.upper(),
         output_mol2=os.path.join(destination, host_resname) + ".mol2",
     )
 
     create_host_mol2(
         solvated_pdb=os.path.join(destination, prefix) + ".pdb",
         amber_prmtop=os.path.join(source, reference_prmtop),
-        mask=guest_resname,
+        mask=guest_resname.upper(),
         output_mol2=os.path.join(destination, guest_resname) + ".mol2",
     )
 
