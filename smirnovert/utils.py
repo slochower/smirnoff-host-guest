@@ -155,13 +155,13 @@ def convert_mol2_to_sybyl_antechamber(input_mol2,
 
     antechamber_output = output_mol2 + '.out'
     antechamber_input = output_mol2 + '.in'
-    with open(path + antechamber_input, 'w') as file:
+    with open(os.path.join(path, antechamber_input), 'w') as file:
         file.write('#!/usr/bin/env bash\n')
         # file.write('source $AMBERHOME/amber.sh\n')
         file.write(antechamber)
-    with open(path + antechamber_output, 'w') as file:
+    with open(os.path.join(path, antechamber_output), 'w') as file:
         p = sp.Popen(
-            ['bash', path + antechamber_input],
+            ['bash', os.path.join(path, antechamber_input)],
             cwd=path,
             stdout=file,
             stderr=file)
@@ -269,9 +269,9 @@ def create_pdb_with_conect(solvated_pdb, amber_prmtop, output_pdb, path='./'):
     cpptraj_input = output_pdb + '.in'
     cpptraj_output = output_pdb + '.out'
 
-    with open(path + cpptraj_input, 'w') as file:
+    with open(os.path.join(path, cpptraj_input), 'w') as file:
         file.write(cpptraj)
-    with open(path + cpptraj_output, 'w') as file:
+    with open(os.path.join(path, cpptraj_output), 'w') as file:
         p = sp.Popen(
             ['cpptraj', '-i', cpptraj_input],
             cwd=path,
@@ -321,7 +321,7 @@ def prune_conect(input_pdb, output_pdb, path='./'):
         logging.debug(
             f'Found first water CONECT entry at line = {line_to_delete_from}')
 
-    with open(path + output_pdb, 'w') as file:
+    with open(os.path.join(path, output_pdb), 'w') as file:
         sp.Popen(
             ['awk', f'NR < {line_to_delete_from}', input_pdb],
             cwd=path,
@@ -363,9 +363,9 @@ def extract_dummy_atoms(amber_prmtop,
     cpptraj_input = output_pdb + '.in'
     cpptraj_output = output_pdb + '.out'
 
-    with open(path + cpptraj_input, 'w') as file:
+    with open(os.path.join(path, cpptraj_input), 'w') as file:
         file.write(cpptraj)
-    with open(path + cpptraj_output, 'w') as file:
+    with open(os.path.join(path, cpptraj_output), 'w') as file:
         p = sp.Popen(
             ['cpptraj', '-i', cpptraj_input],
             cwd=path,
@@ -439,9 +439,9 @@ trajout {output_pdb}
     cpptraj_input = output_pdb + '.in'
     cpptraj_output = output_pdb + '.out'
 
-    with open(path + cpptraj_input, 'w') as file:
+    with open(os.path.join(path, cpptraj_input), 'w') as file:
         file.write(cpptraj)
-    with open(path + cpptraj_output, 'w') as file:
+    with open(os.path.join(path, cpptraj_output), 'w') as file:
         p = sp.Popen(
             ['cpptraj', '-i', cpptraj_input],
             cwd=path,
@@ -487,9 +487,9 @@ def create_dummy_atom_parameters(input_pdb,
     tleap_input = output_prmtop + '.in'
     tleap_output = output_prmtop + '.out'
 
-    with open(path + tleap_input, 'w') as file:
+    with open(os.path.join(path, tleap_input), 'w') as file:
         file.write(tleap)
-    with open(path + tleap_output, 'w') as file:
+    with open(os.path.join(path, tleap_output), 'w') as file:
         p = sp.Popen(
             ['tleap', '-f', tleap_input, '>', tleap_output],
             cwd=path,
@@ -578,14 +578,14 @@ def create_water_and_ions_parameters(input_pdb,
     tleap_input = output_prmtop + '.in'
     tleap_output = output_prmtop + '.out'
 
-    with open(path + tleap_input, 'w') as file:
+    with open(os.path.join(path, tleap_input), 'w') as file:
         file.write(tleap)
-    with open(path + tleap_script, 'w') as file:
+    with open(os.path.join(path, tleap_script), 'w') as file:
         file.write('#!/usr/bin/env bash\n')
         # file.write('source $AMBERHOME/amber.sh\n')
         file.write(f'tleap -f {tleap_input} && sleep 1\n')
         file.write(f'mv leap.log {tleap_output}')
-    with open(path + tleap_output, 'w') as file:
+    with open(os.path.join(path, tleap_output), 'w') as file:
         p = sp.Popen(
             ['bash', tleap_script], cwd=path, stdout=file, stderr=file)
         output, error = p.communicate()
@@ -638,7 +638,7 @@ NONBON
 Pb       0.000     0.0000000
 
         '''
-    with open(path + file_name, 'w') as file:
+    with open(os.path.join(path, file_name), 'w') as file:
         file.write(frcmod)
     logging.debug('Writing dummy atom `frcmod`.')
 
@@ -668,7 +668,7 @@ USER_CHARGES
 @<TRIPOS>SUBSTRUCTURE
       1  DUM              1 ****               0 ****  ****
         '''
-    with open(path + file_name, 'w') as file:
+    with open(os.path.join(path, file_name), 'w') as file:
         file.write(mol2)
     logging.debug('Writing dummy atom `mol2`.')
 
@@ -1073,9 +1073,9 @@ def create_host_mol2(solvated_pdb, amber_prmtop, mask, output_mol2, path='./'):
     cpptraj_input = output_mol2 + '.in'
     cpptraj_output = output_mol2 + '.out'
 
-    with open(path + cpptraj_input, 'w') as file:
+    with open(os.path.join(path, cpptraj_input), 'w') as file:
         file.write(cpptraj)
-    with open(path + cpptraj_output, 'w') as file:
+    with open(os.path.join(path, cpptraj_output), 'w') as file:
         p = sp.Popen(
             ['cpptraj', '-i', cpptraj_input],
             cwd=path,
