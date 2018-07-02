@@ -104,8 +104,8 @@ def convert(
     )
 
     extract_water_and_ions(
-        amber_prmtop=reference_prmtop,
-        amber_inpcrd=reference_inpcrd,
+        amber_prmtop=os.path.join(source, reference_prmtop),
+        amber_inpcrd=os.path.join(source, reference_inpcrd),
         host_residue=":" + host_resname,
         guest_residue=":" + guest_resname,
         dummy_atoms=True,
