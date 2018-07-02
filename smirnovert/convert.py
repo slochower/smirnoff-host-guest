@@ -171,7 +171,8 @@ def convert(
         print("Check if the host-guest coordinate file already exists...")
 
     water_and_ions = pmd.amber.AmberParm(
-        destination + "water_ions.prmtop", xyz=destination + "water_ions.inpcrd"
+        os.path.join(destination, "water_ions.prmtop"), xyz=os.path.join(destination,
+                                                        "water_ions.inpcrd")
     )
 
     merged = mergeStructure(hg_structure, water_and_ions)
