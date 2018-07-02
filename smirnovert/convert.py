@@ -106,8 +106,8 @@ def convert(
     extract_water_and_ions(
         amber_prmtop=os.path.join(source, reference_prmtop),
         amber_inpcrd=os.path.join(source, reference_inpcrd),
-        host_residue=":" + host_resname,
-        guest_residue=":" + guest_resname,
+        host_residue=":" + host_resname.upper(),
+        guest_residue=":" + guest_resname.upper(),
         dummy_atoms=True,
         output_pdb="water_ions.pdb",
         path=destination,
