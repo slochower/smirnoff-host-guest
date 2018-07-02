@@ -61,8 +61,8 @@ def convert(
     )
 
     create_pdb_with_conect(
-        solvated_pdb=os.path.join(destination, reference_inpcrd),
-        amber_prmtop=os.path.join(destination, reference_prmtop),
+        solvated_pdb=os.path.join(source, reference_inpcrd),
+        amber_prmtop=os.path.join(source, reference_prmtop),
         output_pdb=os.path.join(destination, prefix) + ".pdb",
     )
 
